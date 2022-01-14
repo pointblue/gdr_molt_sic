@@ -1,0 +1,1602 @@
+---
+title: "Penguin Science EOS Report 2021"
+subtitle: | 
+  | Cape Crozier and Cape Royds
+  | B-031/B-040/B-200
+author: "Grant Ballard, Parker Levinson & Annie Schmidt"
+date: "`r format(Sys.time(),'%d %B %Y')`"
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{center}
+    \includegraphics[width=2in, height=2in]{`r paste("Z:/Informatics/S031/S031",2021,"/EOS_report/data/pb_logo.png",sep="")`}\LARGE\\}
+  - \posttitle{\end{center}}
+  - \usepackage{caption}
+  - \captionsetup[figure]{font = it}
+#creates file in code/output folder with the current date as the version number
+knit: (function(inputFile, encoding) {
+      rmarkdown::render(inputFile, 
+                        encoding=encoding, output_dir = "output", 
+                        output_file = paste("Penguin_Science_Report_", 2021,"_v",Sys.Date(), sep="")) })
+output:
+  pdf_document:
+    #getdocument to knit, then figure these out
+    toc: true
+    toc_depth: 3
+    fig_caption: yes
+    fig_width: 6
+    extra_dependencies: ["float"]
+    #fig.height: 6
+    #fig.align: 'center'
+  #word_document: default
+  #html_document: default
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+#set up chunk
+#echo =false to not show code in output
+#eval.after evaluates figure captions after the chunk runs which is helpful if there are variables in the chunk you want to show in the caption
+#fig.post an out extra are supposed to stop figures from floating and make them display where they are in the code, but i haven't gotten it to work perfectly
+#set figure alignment with fig.align
+
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, error = FALSE, dev = 'pdf', eval.after = "fig.cap", fig.post = "!H", out.extra = "", fig.align = 'center')
+require(knitr)
+
+
+###############################################
+##CHANGE THESE VARIABLES EVERY YEAR##
+#create some season variables to change here
+
+#this variable automatically sets graph constraints and filters compiled files 
+curr_seas=2021
+#this variable automatically updates file paths for specific year files, when applicable
+f_path=2122
+#this variable is for reading in files that have the short season
+seas_short = 21
+################################################
+
+library(dplyr, quietly=TRUE, warn.conflicts = FALSE)
+library(lubridate, quietly=TRUE, warn.conflicts = FALSE)
+library(XLConnect, quietly=TRUE, warn.conflicts = FALSE)
+require(foreign)
+library(data.table)
+library(forcats)
+require(graphics)
+library(gridExtra)
+library(ggplot2)
+library(ggpmisc)
+
+#create the ggplot theme that will be used throughout the document, can make any modifications to the theme here
+
+#basic theme for plots
+EOS_theme<-  theme_classic()+
+  theme(plot.title = element_text(hjust=0.5, face = "bold"), axis.text=element_text(size=10),
+        axis.title=element_text(size=11,face="bold"), axis.line = element_line(size = 0.2))
+
+#theme for facet wrap plots that includes tick marks for all values but only labels for every three values
+EOS_axis<-theme_classic()+
+  theme(plot.title = element_text(hjust=0.5, face = "bold"), axis.text=element_text(size=10), 
+        #have every three axis labels be labeled in black
+        axis.text.x= element_text(color = c("black", NA, NA)), axis.line = element_blank(), axis.title=element_text(size=11,face="bold"),
+        #remove background on each facet but outline with thin black line
+        panel.background = element_rect(fill = NA, color = "black", size =0.2), strip.background = element_rect(fill = NA, size = 0.2), 
+        #have white grid lines which will allow all values to have tick marks
+        panel.grid.major.x = element_line(color="white"),
+        #make every three axis ticks slightly larger
+        axis.ticks.x=element_line(size=c(1,0.3,0.3)))
+
+#theme for non-facet wraps with includes tick marks for all values but only labels for every three values
+EOS_axis_plain<-theme_classic()+
+  theme(plot.title = element_text(hjust=0.5, face = "bold"), axis.text=element_text(size=10), 
+        #every three x axis labels are visible
+        axis.text.x= element_text(color = c("black", NA, NA)), axis.title=element_text(size=11,face="bold"), panel.grid.major.x = element_line(color="white"), axis.ticks.x=element_line(size=c(1,0.3,0.3)))
+
+#set colors and values for graphs####
+croz_color<-"#0561FF"
+royd_color<-"#69E1FF"
+line_color<-"blue"
+grey_col<-"gray58"
+accent<-"red"
+croz_accent<-"#1A07D1"
+royd_accent<-"#00AAF2"
+#this is how offset royds will be from crozier on bar graphs
+nudge_width<-0.17
+#set the wifth of each bar
+width<-0.7
+#set the transparency of royds/the second layer of bar graph
+alpha<-0.85
+col1<-"seagreen4"
+col2<-"seagreen1"
+```
+
+
+```{r file read in and clean up, include= FALSE, warning=FALSE, error = TRUE}
+
+#load files that are needed throughout the whole document
+
+#all resight
+#no need to mess with these each season
+#read in all resight, removing the extra x columns 
+all_rs <-read.dbf(paste("Y:/S031/S031",f_path,"/croz",f_path,"/bandsearch/allresight.dbf", sep = ""))[,1:27]
+
+#this reads in crozier and royds resight for the current season, joins them together, and updates the season year
+curr_rs <-  full_join(read.dbf(paste("Y:/S031/S031",f_path,"/croz",f_path,"/bandsearch/resight",seas_short,".dbf", sep="")), read.dbf(paste("Y:/S031/S031",f_path,"/royds",f_path,"/bandsearch/resight", seas_short,".dbf", sep = "")))%>%
+  #add current season year to file
+  mutate(SEASON_FYR = curr_seas)
+
+#band inv
+band_inv <- read.dbf(paste("Y:/S031/S031",f_path,"/croz",f_path,"/band/band_inv.dbf", sep =""))
+
+#work dates
+work_dates<-readWorksheetFromFile(file = paste("Y:/S031/S031",f_path,"/croz",f_path,"/ImportantDates_",f_path,".xls", sep =""),sheet = "Work_dates")%>%
+  mutate(season = as.numeric(format(as.Date(DepartureDate, format = "%Y-%m-%d"), "%Y")))%>%
+  mutate(season = season-1)
+
+#important dates
+imp_dates<-readWorksheetFromFile(file = paste("Z:/Informatics/S031/S031",f_path,"/croz",f_path,"/ImportantDates_",f_path,".xls", sep =""),sheet = "Crozier")
+
+# clean up the files
+
+#make list of bands put out on chicks
+#definitely a faster, more efficient way to do this
+band_chick <- band_inv%>%
+  filter(TYPE=="CHIC")
+
+band_numbs <- data.frame(bandnumb = integer())
+
+for (row in 1:nrow(band_chick)){
+  temp_bands<-data.frame(bandnumb = band_chick[row,"LOW"]:band_chick[row,"HIGH"])
+  band_numbs <-rbind(band_numbs, temp_bands)
+}
+
+#clean up all_rs to remove birds banded as adults and seen at focal colonies
+all_rs_chick <- all_rs%>%
+  filter(BANDNUMB %in% band_numbs$bandnumb)%>%
+  filter(COLONY =="CROZ" | COLONY == "ROYD")%>%
+  #a couple season_fyrs off for royds entries
+  mutate(SEASON_FYR =plyr::mapvalues(SEASON_FYR, from = c(14,15), to = c(2014,2015)))%>%
+  #remove current season's all_rs if it was already appended 
+  filter(SEASON_FYR!=curr_seas)%>%
+  full_join(curr_rs)
+
+#determine how many days at camp
+ppl_days<-imp_dates%>%
+  select(OurArrival)%>%
+  mutate(season = as.numeric(format(as.Date(OurArrival, format = "%Y-%m-%d"), "%Y")))%>%
+  left_join(work_dates)%>%
+  #add departure date for 2016 season for waste purposes later on, taken from journal
+  #i know emily went back for some time after but would not be reflected in waste log
+  mutate(DepartureDate=replace(DepartureDate, season ==2016, "2017-01-24"))%>%
+  mutate(days_in_field = as.numeric(difftime(as.Date(DepartureDate),as.Date(OurArrival), unit = "days")))%>%
+  select(-Season)
+
+```
+
+\newpage
+# Summary 
+#### Camp Put-in: 
+`r {format(as.Date(imp_dates$OurArrival[imp_dates$Season==f_path]), format = "%B %d, %Y")}`   
+
+#### Camp Pull-out:   
+`r {format(as.Date(work_dates$DepartureDate[work_dates$Season==f_path]), format = "%B %d, %Y")}`  
+
+#### Total Days at Crozier:  
+`r {ppl_days$days[ppl_days$season==curr_seas]}` days spent at Crozier this year
+
+
+#### Personnel:  
+Grant Ballard, Parker Levinson & Annie Schmidt    
+  
+Grant and Annie arrived at camp on `r {format(as.Date(imp_dates$OurArrival[imp_dates$Season==f_path]), format = "%B %d, %Y")}` after a long 5-week journey to get there which included three weeks in managed isolation, one mandatory week in McM for temperature checks, and a week weather delay. We believe it was the longest journey to Crozier since *The Worst Journey in the World*. By the time they arrived, there were already one and two egg clutches in the colony. 
+
+Because of a reduced camp size, we reduced our bandsearching priorities, focusing on areas of high reward (M, L, B, and lower N) where we were most likely to find new bands. 
+
+Parker relieved Grant on December 12, 2020 after the B-009 seal season had finished. B-031 officially pulled out of Crozier on `r {format(as.Date(work_dates$DepartureDate[work_dates$Season==f_path]), format = "%B %d, %Y")}`.
+
+Noteworthy Crozier items:  
+
+* Had two Southern Fulmars hanging out on Sugar Loaf for most of the season.
+* Used weather forecasts for the first time this year to help plan important activities.
+  + Somewhat accurate. If forecasting anything about 30 knots, expect 80. 
+* Improved chick sizing by calibrating fruit size to size of adult flipper. 
+
+Because of COVID-19 concerns and a reduced personal allotment on station, there was no camp at Royds. Instead, we did day 6 day trips from Royds to Crozier to collect what resight and breeding data we could. 
+
+Trips to Royds: 
+
+* November 09, 2020
+* November 21, 2020
+  + Drone Survey Done
+* December 01, 2020
+  + Drone Survey Done
+* December 11, 2020
+* December 23, 2020
+* January 16, 2021
+  + Drone Survey Done
+
+# Weather 
+#### Weather and Ice conditions
+```{r weather formatting}
+# load in compiled weather from crozier
+
+# the original document created on March 29, 2021 using S0312021/croz2021/EOS_report/code/compile_data/croz_weather_data_compile.R 
+# compiles weather data from 2000 to 2020 seasons
+
+wthr_raw_croz <- read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_weather_compiled_v2021-03-29.csv",sep=""), header=TRUE)
+
+# create new column with formatted date and time
+wthr_raw_croz$date_time <- as_datetime(paste(wthr_raw_croz$date,as.character(wthr_raw_croz$time), sep=" "), tz="US/Pacific-New")
+
+#load in compiled royds weather
+
+# the original document created on March 29, 2021 using S0312021/royd2021/EOS_report/code/compile_data/royd_weather_data_compile.R 
+# compiles weather data from 0304 to 1920 seasons
+# inconsistant data colelction across years, so a bit more work to do with it
+
+wthr_raw_royd <-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/royd_weather_compiled_v2021-03-29.csv",sep=""), header=TRUE)
+
+#format date of royds weather
+wthr_royd<-wthr_raw_royd%>%
+  mutate(date_time = as_datetime(as.POSIXct(paste(DATE, TIME), format="%Y-%m-%d %H:%M"), tz="US/Pacific-New"))%>%
+  #make all column names lower case to match with crozier format
+  rename_all(tolower)
+
+#join crozier and royds weather data together
+wthr_raw<-full_join(wthr_raw_croz, wthr_royd)
+
+#add columns in weather so it is easier to work with
+wthr<-wthr_raw%>%
+  #this formats the date column
+  mutate(date = as.POSIXct(date))%>%
+  #this creates a julian date based on the date and then creates a study date from the julian date
+  #the study date is useful for calculating time elapsed because julian dates start over on Jan 1 which isn't useful for us since that's the middle of the season
+  # could probably skip this step and use difftime insead
+  mutate(jdate=as.numeric(format(date, "%j")), 
+         studyday = ifelse(jdate>=290,jdate-290,jdate+75))%>%
+  #a single value in 2012 at Crozier recorded as -112.8. Replace with NA
+  mutate(lowtemp=replace(lowtemp, lowtemp==-112.8, NA))
+
+
+#create dataframe of just this seasons weather
+curr_seas_wthr <- wthr%>%
+  filter(season == curr_seas)%>%
+  mutate(date = as.Date(date))%>%
+  #make column that denotes if AM or PM weather
+  mutate(AMPM = ifelse(hour(date_time)<11, "AM", "PM"))%>%
+  #make column that denotes if gust classifies as gale
+  mutate(gale = ifelse(gustmph >= 40, "Y", "N"))
+
+#this data frame is just for the summary report text
+#it takes the average fast ice extent of the first 10 weather entries to estimate how much ice there was when we arrive
+#it then takes the first day where there was no sea ice extent as the day when all the ice broke out
+fast_ice_sum<- data.frame(init_ice=mean(head(as.numeric(curr_seas_wthr$fasticeextent), 10),na.rm = TRUE), break_date = curr_seas_wthr$date[as.numeric(curr_seas_wthr$fasticeextent)==0])%>%
+  na.omit()%>%
+  slice(1)
+
+```
+
+Fast ice extended `r {fast_ice_sum$init_ice}` km offshore when we arrived. Most of the pack blew out and large cracks started forming in the fast ice around December 16, 2020. Starting on `r {format(fast_ice_sum$break_date, format = "%B %d, %Y")}`, we recording 0km of fast ice while doing the daily weather. By January 04, 2021, the ice had blown out to ERook.  
+
+## This Season's Weather
+```{r this seasons temp, fig.cap= paste("Overnight low temperature at Crozier in Celsius during the",curr_seas," season.  No weather data was collected at Royds this season because there was no field camp. Days without overnight low data are left blank."), fig.height = 3}
+
+# temperature
+
+# I've only run this with 2020 when there was no Royds data, so probably need to tweak the formatting a little for better output
+curr_seas_wthr%>%
+  #only include overnight lows, so lows collected during AM weather
+  filter(AMPM=="AM")%>%
+  ggplot(aes(fill=colony))+
+  #column for crozier weather
+  geom_col(data= subset(curr_seas_wthr,colony == "croz"), aes(date, lowtemp), color = "white", width=width)+
+  #columns for royds weather
+    geom_col(data= subset(curr_seas_wthr,colony == "ROYDS"), aes(date, lowtemp), position = position_nudge(nudge_width), alpha = alpha, width = width)+
+  #set fill colors and legend names
+  scale_fill_manual(values = c(croz_color, royd_color), name = "Colony", labels = c("Crozier", "Royds"))+
+  #decide date breaks and label type
+  scale_x_date(name = "Date", breaks="20 days", date_labels = "%b %d")+
+  #format y axis
+  scale_y_continuous(name = "Temp (C)", limits = c(-12,0), breaks = seq(-12,0, by =4), labels = seq(-12,0, by =4))+
+  EOS_theme
+```
+
+**Low temp:** The lowest temperature recorded this season was `r {min(curr_seas_wthr$lowtemp, na.rm=TRUE)}`$^\circ$C on `r {format(as.Date(curr_seas_wthr$date[!is.na(curr_seas_wthr$lowtemp)&curr_seas_wthr$lowtemp == min(curr_seas_wthr$lowtemp, na.rm=TRUE)]), format = "%B %d, %Y")}`, the very first day at Crozier. 
+
+```{r this season wind, fig.cap=paste("Largest wind gust recorded each day at Crozier during the ", curr_seas," season with gale days (defined as greater than or equal to 40mph) highlighted in dark green.", sep =""), fig.height=3}
+
+
+# this has only been formatted for Crozier as no Royds data collected in 2021 when first draft of report was made
+# would need to figure out color system, maybe easiest to do facet wrap with one for crozier and one for royds if you want to highlight gale days
+
+#plot wind this year
+curr_seas_gale<-curr_seas_wthr%>%
+  #filter only for crozier since not made for Royds yet. change this if you want data from both colonies
+  filter(colony == "croz")%>%
+  #group by the same day and only take the biggest wind gust of the day
+  group_by(jdate)%>%
+  #arrange by descending order
+  arrange(-gustmph)%>%
+  #only take the first value
+  slice(1)%>%
+  ungroup()
+
+curr_seas_gale%>%
+  ggplot(aes(date,gustmph, fill = gale))+
+  #geom_bar(data = wind_max, aes(studyday, gustmph), fill = "lightgrey", stat = "identity")+
+  geom_col(width =1, color = "white")+
+  #decide the colors for the legend and manually override so only gale color is shown
+  # GAF because just removed text and color for the non-gale day items
+  scale_fill_manual(values = c(col2, col1), labels = c("", "Gale"), guide = guide_legend(override.aes = list(fill = c("white", col1))))+
+  scale_x_date(name = "Date")+
+  scale_y_continuous(name = "Max Gust (mph)")+
+  labs(caption = "Gale defined by wind >= 40mph")+
+  #can't figure out this legend shit
+  EOS_theme+
+  theme(legend.title = element_blank())
+
+```
+
+
+
+**Wind:** The max wind gust this season was `r {max(curr_seas_gale$gustmph, na.rm=TRUE)}` mph on `r {format(as.Date(curr_seas_gale$date[!is.na(curr_seas_gale$gustmph)&curr_seas_gale$gustmph == max(curr_seas_gale$gustmph, na.rm=TRUE)]), format = "%B %d, %Y")}`. 
+
+**Gale:** There were `r {sum(curr_seas_gale$gale=="Y", na.rm = TRUE)}` gale days (>=40mph) during the season. 
+
+**Snow:** The was some snow on `r {sum(curr_seas_wthr$snowprop>0, na.rm = TRUE)}` days, and there was heavy snow(>50% of the day) on `r {sum(curr_seas_wthr$snowprop>50, na.rm = TRUE)}` days.
+ 
+
+## Weather Time Series
+```{R time series low temp, fig.cap = 'Lowest temperature in Celsius recorded in December by colony and season, regardless of time recorded, with dotted mean lines per colony. Royds is overlaid on top of Crozier. The most recent season is highlighted in a darker color. Outlier temperature of -18.5 recorded on Dec. 02, 2005. No notes of it being especially cold that day in the Journal. Leaving that value for now. Royds weather data starts in 2010. No weather data collected at Royds in the 2012, 2013 or 2020 seasons.', fig.height = 3, fig.wdith =3}
+#time series graphing
+
+#only look at december time series because the "Focal" period with consistent data for the month collected every year
+overnight<- wthr%>%
+  filter(month(wthr$date_time)==12)%>%
+  #this would filter out evening temps but royds weather doesn't always have time attached to it so to be consistant across seasons and colonies, just using all weather data
+  #filter(month(wthr$date_time)==12&hour(wthr$date_time)<11, month(wthr$date_time)==12)%>%
+  #in 2011 AND 2012, at Royds, not always time values for weather so could use this 
+  #filter(ifelse(colony == "CROZ", month(wthr$date_time)==12&hour(wthr$date_time)<11, month(wthr$date_time)==12))%>%
+  select(colony,season,date, lowtemp, studyday)%>%
+  group_by(colony, season)%>%
+  summarise(low = ifelse(all(is.na(lowtemp)), NA, min(lowtemp, na.rm = TRUE)))
+
+##plot temp####
+overnight%>%
+  ggplot(aes(fill = colony))+
+  geom_col(data =subset(overnight, colony =="croz"), aes(season, low), width = width)+
+  geom_col(data =subset(overnight,colony =="ROYDS"), aes(season, low), width = width, position = position_nudge(nudge_width), alpha = alpha)+
+  geom_col(data=subset(overnight, colony=="croz"&season==curr_seas), aes(season, low), fill = croz_accent, width = width)+
+  geom_col(data=subset(overnight, colony=="ROYDS"&season==curr_seas), aes(season, low), fill = royd_accent, width = width, position = position_nudge(nudge_width))+
+    geom_hline(data = subset(overnight, colony =="croz"), aes(yintercept =mean(low, na.rm=TRUE)), color = croz_color, lty = 2)+
+  geom_hline(data = subset(overnight, colony =="ROYDS"), aes(yintercept =mean(low, na.rm=TRUE)), color = royd_color, lty = 2)+
+  #if you want a point graph
+  #geom_smooth(method = "lm", se = FALSE, size = 0.5, lty = 2, aes(group = colony, color = colony))+
+  #geom_point(aes(color = colony))+
+  #geom_line(aes(color = colony), na.rm = TRUE)+
+  #geom_point(aes(x= curr_seas, y = low[season==curr_seas&colony=="croz"]), size = 2, shape = 19, col = accent)+
+  #geom_point(aes(x= curr_seas, y = low[season==curr_seas&colony=="ROYDS"]), size = 2, shape = 19, col = accent)+
+  scale_y_continuous(name = "Lowest Temp (C)", limits = c(-20,0))+
+  scale_x_continuous(name = "Season", breaks = seq(2002, curr_seas), labels =  seq(2002, curr_seas))+
+  scale_fill_manual(values = c(croz_color,royd_color), name = "Colony", labels=c("Crozier", "Royds"))+
+  EOS_theme+
+  theme(panel.grid.major.x = element_line(colour = c("white")), axis.text.x=element_text(colour = c("black",NA, NA)), axis.ticks.x=element_line(size=c(1, 0.3, 0.3)))
+```
+
+This season's lowest temperature in December was `r {overnight$low[overnight$season ==curr_seas&overnight$colony=="croz"]}`$^\circ$C which is slightly higher than the average lowest temp at Crozier in December of `r {signif(mean(overnight$low[overnight$colony=="croz"], na.rm=TRUE), digits = 3)}`$^\circ$C.
+
+There was no weather data collected at Royds this season. 
+
+```{r time series wind,fig.cap='Number of days with peak gust considered a gale (>=40mph) in December with dashed mean lines by colony. Only looked at data from December because it is the only month of the season with consistant and complete records. Limited and variable Royds data collected across seasons, especially 2012-2017, and no data collected in 2020.', fig.height=3, fig.width =6}
+
+##wind time series#
+
+#this finds the max wind gust by study day
+#definitely more efficient way to do it
+wind_max<- wthr%>%
+  select(season,gustmph, studyday)%>%
+  group_by(studyday)%>%
+  arrange(-gustmph)%>%
+  slice(1)%>%
+  mutate(gale = ifelse(gustmph>=40, "Y", "N"))
+
+#sum up how many gale days there were in each season
+wind_sum<- wthr%>%
+  #only looking at december
+  filter(month(wthr$date)==12)%>%
+  select(colony,season, date ,gustmph,studyday)%>%
+  filter(!is.na(gustmph))%>%
+  #make binary column if gale or not
+  mutate(gale = ifelse(gustmph>=40, 1,0))%>%
+  #need to only choose on entry per day
+  group_by(colony,season, studyday)%>%
+  summarise(gale_days = sum(gale))%>%
+  mutate(gale_bi = ifelse(gale_days >=1, 1, 0))%>%
+  ungroup()%>%
+  group_by(colony,season)%>%
+  summarise(total = sum(gale_bi))
+  
+#plot gale days in december
+wind_sum%>%
+  ggplot()+
+  geom_col(data = subset(wind_sum, colony =="croz"), aes(season, total, fill = croz_color), width = width)+
+    geom_col(data = subset(wind_sum, colony =="ROYDS"), aes(season, total, fill = royd_color), position = position_nudge(nudge_width), width = width, alpha=alpha)+
+    geom_col(data=subset(wind_sum, colony=="croz"&season==curr_seas), aes(season, total), fill = croz_accent, width = width)+
+    geom_col(data=subset(wind_sum, colony=="ROYDS"&season==curr_seas), aes(season, total), fill = royd_accent, width = width, position = position_nudge(nudge_width))+
+  geom_hline(data = subset(wind_sum, colony =="croz"), aes(yintercept =mean(total)), color = croz_color, lty = 2)+
+  geom_hline(data = subset(wind_sum, colony =="ROYDS"), aes(yintercept =mean(total)), color = royd_color, lty = 2)+
+  #geom_point(size =1, aes(color = colony))+
+  #geom_point(aes(x= curr_seas, y = total[season==curr_seas&colony=="croz"]), size = 2, shape = 19, col = accent)+
+  scale_x_continuous(name="Season", labels = seq(2002, curr_seas), breaks = seq(2002, curr_seas))+
+  scale_y_continuous(name = "Number Of Gale Days", limits = c(0,15))+
+  labs(caption = "Gale defined by wind >= 40mph")+
+  scale_fill_manual(name = "Colony", labels=c("Crozier", "Royds"), values = c(croz_color,royd_color))+
+  EOS_axis_plain
+```
+
+There were `r {wind_sum$total[wind_sum$season ==curr_seas]}` gale days (wind gust >=40 mph) in December `r curr_seas` at Crozier, significantly higher than the time series' average `r {signif(mean(wind_sum$total), digits = 2)}` gale days in December.
+
+\newpage
+
+# Banded Birds
+
+## Total Banded Birds 
+```{r BB over time, echo=FALSE, fig.cap = 'Total number of bands seen and nests followed by season with current seasons number\'s in darker shade separated by colony. Royds is overlaid on top of Crozier. Banding effort was reduced in 2012 with 500 bands put out at Crozier and 250 at Royds, down from 1000 and 500 respectively.', fig.width = 8}
+
+#CROZIER####
+## this chunk of code finds and graphs the number of KA birds seen and nesting by season#
+###need to add some catch for proofing of band numbers##
+
+#get a count of distinct band numbers of all breeders
+n_nests<-all_rs_chick%>%
+  filter(((NUCH>0 & NUCH <9) | (NUEGG >0 & NUEGG<9)))%>%
+  filter(COLONY=="CROZ"|COLONY=="ROYD")%>%
+  dplyr::group_by(SEASON_FYR, COLONY)%>%
+  dplyr::summarise(bb = n_distinct(BANDNUMB), type = "breed")
+
+#get a count of distinct band numbers of all bb seen
+n_bb <-all_rs_chick%>%
+  filter(COLONY=="CROZ"|COLONY=="ROYD")%>%
+  dplyr::group_by(SEASON_FYR, COLONY)%>%
+  dplyr::summarise(bb = n_distinct(BANDNUMB), type = "seen")
+
+#combine nest and bb from all seasons into one data frame for ease of graphing
+bb<-rbind(n_nests, n_bb)
+
+#change labels for facet wraps
+bb_labels <-c("Nests", "Seen")
+names(bb_labels)<-c("breed","seen")
+
+#plot KA nests and resights across seasons ##### 
+##need to add data from this year###
+bb%>%
+ggplot(aes(fill = COLONY))+
+  geom_col(data = subset(bb, COLONY =="CROZ"), aes(SEASON_FYR,bb), width = width)+
+  geom_col(data = subset(bb, COLONY =="ROYD"), aes(SEASON_FYR,bb), width= width, position = position_nudge(nudge_width), alpha = alpha)+
+  #geom_point()+
+  #geom_line()+
+  #add a line in 2012 where banding effort was reduced
+  geom_vline(xintercept = 2012, linetype = "dotted", color ="black")+
+  geom_col(data = subset(bb, SEASON_FYR == curr_seas&COLONY=="CROZ"), aes(x =curr_seas, y = bb), fill = croz_accent, width = width)+
+  geom_col(data = subset(bb, SEASON_FYR == curr_seas&COLONY=="ROYD"), aes(x =curr_seas, y = bb),position = position_nudge(nudge_width), fill = royd_accent, width =width)+
+  facet_wrap(~type, labeller = labeller(type = bb_labels))+
+  #ggtitle("KA Nests and Birds by Season")+
+  scale_y_continuous(name = "Number of Banded Birds",limits=c(0,1400), breaks = seq(0,1400, by = 200))+
+  scale_x_continuous(name = "Season", breaks = seq(1998, curr_seas))+
+  #geom_text(label = "banding effort\nreduced", x = 2015, y = 1300, color = "black", size = 2)+
+  scale_fill_manual(values = c(croz_color, royd_color), name = "Colony", labels =c("Crozier", "Royds"))+
+  EOS_axis+
+  theme(axis.ticks.x=element_line(size=c(1, 0.3, 0.3, 0.3)), axis.text.x=element_text(color=c("black", NA, NA, NA)))+
+  labs(caption = "Dotted line denotes when banding effort reduced")
+```
+
+#### Known-age birds 
+
+\  
+
+**Crozier:** This year, a total of `r {bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "seen" & bb$COLONY == "CROZ"]}` known-age individuals were resighted at Crozier, a decrease from `r {curr_seas-1}` when `r {bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "CROZ"]}` known-age birds were resighted. That is a `r {round((bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "seen" & bb$COLONY == "CROZ"]-bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "CROZ"])/bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "CROZ"]*-100, digits = 2)}`% decline in bands seen from the previous season.
+
+Similarly, `r {bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "breed" & bb$COLONY == "CROZ"]}` known-age individuals were confirmed breeding in `r {curr_seas}`, a `r {round((bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "breed" & bb$COLONY == "CROZ"]-bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "CROZ"])/bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "CROZ"]*-100, digits = 2)}`% decrease from the previous year when `r {bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "CROZ"]}` known-age were recorded breeding. Arriving later in `r {curr_seas}` likely affected these numbers.
+
+This continues the decreasing trend of the past 8 years. For comparison, there was a `r {round((bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "CROZ"]-bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "seen" & bb$COLONY == "CROZ"])/bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "seen" & bb$COLONY == "CROZ"]*-100, digits = 2)}`% decrease in resight and a `r {round((bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "CROZ"]-bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "breed" & bb$COLONY == "CROZ"])/bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "breed" & bb$COLONY == "CROZ"]*-100, digits = 2)}`% decrease in nests between the `r curr_seas-2` and `r curr_seas-1` seasons.
+
+**Royds:** A total of `r {bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "seen" & bb$COLONY == "ROYD"]}` known-age individuals were resighted at Royds, a `r {round((bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "seen" & bb$COLONY == "ROYD"]-bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "ROYD"])/bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "ROYD"]*-100, digits = 2)}`% decrease from `r {curr_seas-1}` when `r {bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "ROYD"]}` known-age birds were resighted. Similarly, `r {bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "breed" & bb$COLONY == "ROYD"]}` known-age individuals were confirmed breeding in `r {curr_seas}` a substantial `r {round((bb$bb[bb$SEASON_FYR == curr_seas & bb$type == "breed" & bb$COLONY == "ROYD"]-bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "ROYD"])/bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "ROYD"]*-100, digits = 2)}`% decrease from the previous year when `r {bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "ROYD"]}` known-age were recorded breeding. These numbers were most likely affected by not having a camp at Royds this season.
+
+This continues the decreasing trend of the past 8 years at Royds. For comparison, there was a `r {round((bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "seen" & bb$COLONY == "ROYD"]-bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "seen" & bb$COLONY == "ROYD"])/bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "seen" & bb$COLONY == "ROYD"]*-100, digits = 2)}`% decrease in resight and a `r {round((bb$bb[bb$SEASON_FYR == curr_seas-1 & bb$type == "breed" & bb$COLONY == "ROYD"]-bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "breed" & bb$COLONY == "ROYD"])/bb$bb[bb$SEASON_FYR == curr_seas-2 & bb$type == "breed" & bb$COLONY == "ROYD"]*-100, digits = 2)}`% decrease in breeders between the `r curr_seas-2` and `r curr_seas-1` seasons.
+
+## Breeder Resight   
+```{r BB breeder resight, echo=FALSE,  fig.height = 4, fig.width =8, fig.cap = paste('Percent of previous season\'s breeders that were either resighted or resighted and rebreeding in that current season by colony with Royds overlaid on Crozier i.e. 71\\% of 2019\'s breeders were resighted in 2020 but only 50\\% of 2019\'s breeders bred in 2020. Categories are not mutually exclusive so birds that bred are also considered in the resight calculations. Royds resight average is ', round(mean(perc_diff$percentage[perc_diff$colony=="ROYD"&perc_diff$type=="Resighted"], na.rm=TRUE), digits = 1),'\\% and rebreeding percent is ',round(mean(perc_diff$percentage[perc_diff$colony=="ROYD"&perc_diff$type=="Re-bred"], na.rm=TRUE), digits = 1),'\\%. Crozier resight average is ',round(mean(perc_diff$percentage[perc_diff$colony=="CROZ"&perc_diff$type=="Resighted"], na.rm=TRUE), digits = 1),'\\% and the rebreeder average is ',round(mean(perc_diff$percentage[perc_diff$colony=="CROZ"&perc_diff$type=="Re-bred"], na.rm=TRUE), digits = 1), '\\%. Dashed lines represent series mean lines by colony and most recent season highlighted with darker color.', sep ='')}
+
+
+#automate in loop to record values from each season#
+
+#decide which seasons you want to include in the re-breeder metric
+#1998-2002 have inconsistent inc, nuegg, nuch entries so decided not to use for this figure because required too much cleaning
+
+# so I start with 2004
+seas_list <- c(2004:curr_seas)
+
+#set n as the first year in the season, i think this is unnecessary
+n<-seas_list[1]
+
+#create a data frame to store it all in
+perc_diff <- data.frame(colony = factor(), season = integer(), percentage = integer(), type = factor())
+
+
+#go through each season to add values to data frame
+for(n in seas_list){
+  seas <- n
+  prev_seas <- seas - 1
+  
+  #make a list of all the breeders from the previous season
+  prev_breed <- all_rs_chick%>%
+    filter(SEASON_FYR == prev_seas & ((NUCH>0 & NUCH<9) | (NUEGG>0 & NUEGG<9)))%>%
+    group_by(COLONY)%>%
+    distinct(BANDNUMB)
+  
+  #make a list of all the current breeders
+  curr_breed <-  all_rs_chick%>%
+    filter(SEASON_FYR == seas & ((NUCH>0 & NUCH<9) | (NUEGG>0 & NUEGG<9)))%>%
+    group_by(COLONY)%>%
+    distinct(BANDNUMB)%>%
+    #join the list of past breeders to those of current breeders, keeping values i.e bands that are the same
+    semi_join(prev_breed, by = c("COLONY", "BANDNUMB"))%>%
+    summarise(rebreeders = n_distinct(BANDNUMB))#, type = "rebreeder", season = seas)
+  
+  #make a list of all the current bands seen
+  curr_seen <-  all_rs_chick%>%
+    filter(SEASON_FYR == seas)%>%
+    group_by(COLONY)%>%
+    distinct(BANDNUMB)%>%
+    #join to previous breeders and keep values (bands) that are the same
+    semi_join(prev_breed, by = c("COLONY", "BANDNUMB"))%>%
+    summarise(resight = n_distinct(BANDNUMB))#, type = "resight", season = seas)
+  
+  #add number of distinct band numbers to a new dataframe
+  summary <- prev_breed%>%
+    group_by(COLONY)%>%
+    summarise(prev_breeders = n_distinct(BANDNUMB))%>%
+    full_join(curr_breed, by = "COLONY")%>%
+    full_join(curr_seen, by = "COLONY")%>%
+    mutate(percentage = NA, type = NA, season = seas, colony =COLONY)
+  
+  #calculate percentages in data frame for each season
+  summary<-summary%>%  
+    #rebreeding percentage
+  add_row(percentage =summary$rebreeders/summary$prev_breeders*100, type = "rebreeders", season = seas, colony = summary$COLONY)%>%
+    #breeder resight
+    add_row(percentage =(summary$resight/summary$prev_breeders)*100, type = "resight", season = seas, colony = summary$COLONY)%>%
+    filter(!is.na(percentage))%>%
+    select(percentage:colony)
+  
+  #enter data into datafield
+  perc_diff<-full_join(perc_diff, summary)
+    #current season
+    #perc_breed is the number of current breeders that bred last year divided by the number of current resights that bred last year
+    #perc_seen is the number of current resights that bred last year divided by how many birds actually bred last year
+  n<-n+1
+}
+
+
+perc_diff<-perc_diff%>%
+    mutate(type = replace(type,type == "resight", "Resighted"), type = replace(type, type =="rebreeders", "Re-bred"))
+
+####to include arrival dates on graph####
+#arrival_dates <- read.csv("Z:/Informatics/S031/S0312021/analyses/breeder_resight/arrival_dates.csv")
+
+#arrival_dates <- arrival_dates%>%
+ # mutate_at(vars(arrival.date), as.character)%>%
+  #have to make the date the right format and then turn it into a julian date
+  #mutate(date=as.Date(arrival.date, format="%m/%d/%y"),JDATE=as.numeric(format(date, "%j")), 
+        # STUDYDAY = ifelse(JDATE>=290,JDATE-290,JDATE+75))
+
+#####to plot the time series#####
+
+#create overall means for each season
+bb_mean<-perc_diff%>%
+  na.omit()%>%
+  group_by(type, colony)%>%
+  summarise(mean= mean(percentage))
+
+
+#plot resight of last years breeders
+perc_diff%>%
+  ggplot(aes(fill = colony))+
+  geom_col(data =subset(perc_diff, colony =="CROZ"), aes(season, percentage), width = width)+
+  geom_col(data =subset(perc_diff, colony =="ROYD"), aes(season, percentage), width = width, position=position_nudge(nudge_width), alpha = 0.8)+
+  geom_col(data=subset(perc_diff, colony =="CROZ"&season==curr_seas), aes(season, percentage), fill = croz_accent, width = width)+
+    geom_col(data=subset(perc_diff, colony =="ROYD"&season==curr_seas), aes(season, percentage), fill = royd_accent, width = width, position = position_nudge(nudge_width))+
+  #geom_point(aes(x= season, y = percentage, color = colony, shape =colony), size = 2)+
+  geom_hline(data = bb_mean, aes(yintercept = mean, color = colony), lty = 2, size=0.2)+
+  #geom_point(data = subset(perc_diff, season == curr_seas), aes(x= curr_seas, y = percentage, shape = colony), size = 3, col = accent)+
+  facet_wrap(~fct_reorder(type, desc(type)), ncol = 2)+
+scale_fill_manual(values = c(croz_color, royd_color), name = "Colony", labels = c("Crozier", "Royds"))+
+  scale_color_manual(values = c(croz_color, royd_color),name = "Colony", labels = c("Crozier", "Royds"))+
+  scale_x_continuous(name = "Season", breaks = seq(2003, curr_seas), labels = seq(2003, curr_seas))+
+  scale_y_continuous(name = "Percent Seen", limits = c(0,100))+
+  EOS_axis+
+  #fix legend colors which got flipped
+  #need to update legend!+ 
+  guides(shape = FALSE, color = guide_legend(override.aes = list(shape =c(19,17))))
+```
+
+
+**Description:**    
+This metric looks at what happened to breeders from the previous year. It is not mutually exclusive so birds re-breeding were also included in the re-sight statistics. 
+
+
+**Crozier:** This season, `r round(mean(perc_diff$percentage[perc_diff$colony=="CROZ"&perc_diff$type=="Resighted"&perc_diff$season==curr_seas], na.rm=TRUE), digits = 1)`% of last years breeders were resighted, slightly less than the time series average of `r round(mean(perc_diff$percentage[perc_diff$colony=="CROZ"&perc_diff$type=="Resighted"], na.rm=TRUE), digits = 1)`% breeder resight. In comparison, `r round(mean(perc_diff$percentage[perc_diff$colony=="CROZ"&perc_diff$type=="Re-bred"&perc_diff$season==curr_seas], na.rm=TRUE), digits = 1)`% of last years breeders bred again, slightly more than the time series average of `r round(mean(perc_diff$percentage[perc_diff$colony=="CROZ"&perc_diff$type=="Re-bred"], na.rm=TRUE), digits = 1)`% breeder rebreeding. The lower resight percentage may be a result of arriving at the colony later, having fewer people in the field, or reduced band searching effort. This season, because there were fewer of us, we bandsearched the areas of high reward (B, M, L, and lower N) where there is a high concentration of bands and then did targeted searches at locations of known nests in other part of the colony.  
+
+
+**Royds:** This season, `r round(mean(perc_diff$percentage[perc_diff$colony=="ROYD"&perc_diff$type=="Resighted"&perc_diff$season==curr_seas], na.rm=TRUE), digits = 1)`% of last years breeders were resighted, much lower than the time series average of `r round(mean(perc_diff$percentage[perc_diff$colony=="ROYD"&perc_diff$type=="Resighted"], na.rm=TRUE), digits = 1)`% breeder resight. This is most likely due to not having a camp at Royds this year and only visiting it for 6 day trips to bandsearch. Similarly, `r round(mean(perc_diff$percentage[perc_diff$colony=="ROYD"&perc_diff$type=="Re-bred"&perc_diff$season==curr_seas], na.rm=TRUE), digits = 1)`% of last years breeders bred again, slightly lower than the time series average of `r round(mean(perc_diff$percentage[perc_diff$colony=="ROYD"&perc_diff$type=="Re-bred"], na.rm=TRUE), digits = 1)`% breeder rebreeding. 
+
+
+# Count Data
+
+```{R M counts, echo = FALSE, fig.cap = paste('Sum of active nests counted in M at Crozier each season. Only subcolonies counted every season are included. For subcolonies that merged over time i.e. 14 and 14a, if they were counted all previous seasons, the counts were merged into 14-14a. As such, the total number of subcolonies reflected represent the merged subcoonies. A linear regression (dotted blue line) with 95\\% confidence interval shaded was fit to the data. The slope for the line is ',round(coef(count_line)[2], digits =2),', suggesting about that many penguins are added each year.', sep=''), fig.height=3}
+
+
+# load in breeding population counts from M
+
+#these files are created using the s0312021/eos_report/code/compile_data/croz_all_counts_compile.R which compiles count data from 2002-2020 for adults and 2000-2020 for chicks. 
+ad_count_raw<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_adult_count_compiled_v2021-04-08.csv", sep=""))
+ch_count_raw<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_chick_count_compiled_v2021-04-08.csv", sep =""))
+
+#this file  created using the s0312021/eos_report/code/compile_data/royd_all_counts_compile.R which compiles both adult and chick count data from 2003-2020 and combines them into one dataframe. 
+r_all_count_raw<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/royd_all_count_compiled_v2021-04-09.csv",sep=""))
+
+
+#---- clean up data -------
+#combine 14 and 14a together#####
+ad_count_14_raw <- ad_count_raw%>%
+  filter(subcol =="14" | subcol == "14a")
+
+ad_count_14<-ad_count_14_raw%>%
+  group_by(season)%>%
+  summarise(total_ct = sum(total_ct), occ_ct = sum(occ_ct), active_ct= sum(active_ct))%>%
+  mutate(subcol = "14-14a", col = "croz", date = ad_count_14_raw$date[1:15], notes = ad_count_14_raw$notes[1:15], notes2 = ad_count_14_raw$notes[16:30])%>%
+  mutate(notes = ifelse(!is.na(notes2), notes, notes2))%>%
+  select(-notes2)%>%
+  select(colnames(ad_count_raw))%>%
+  mutate(notes = as.factor(as.character(notes)))
+
+#remove old 14 counts and add in new, merged counts of 14 and 14a
+ad_count_edit<-ad_count_raw%>%
+  filter(subcol !="14" & subcol != "14a")%>%
+  full_join(ad_count_14)%>%
+  mutate(season_fy = year(as.Date(date)))
+
+
+# combine 21 and 24 together####
+
+ad_count_21_raw <- ad_count_edit%>%
+  filter(subcol =="21" | subcol == "24")
+
+ad_count_21<-ad_count_21_raw%>%
+  group_by(season)%>%
+  summarise(total_ct = sum(total_ct), occ_ct = sum(occ_ct), active_ct= sum(active_ct))%>%
+  mutate(subcol = "21-24", col = "croz", date = ad_count_21_raw$date[1:15], notes = ad_count_21_raw$notes[1:15], notes2 = ad_count_21_raw$notes[16:30])%>%
+  mutate(notes = ifelse(!is.na(notes2), notes, notes2))%>%
+  select(-notes2)%>%
+  select(colnames(ad_count_raw))%>%
+  mutate(notes = as.factor(as.character(notes)))
+
+#remove old 21 and 24 counts and add in new, merged counts of  21-24
+ad_count<-ad_count_edit%>%
+  filter(subcol !="21" & subcol != "24")%>%
+  full_join(ad_count_21)
+
+# ----- choose which subcolonies to include ------
+
+#change formatting and remove 1011 since only counted 10 subcolonies counting
+count_subcol <-ad_count%>%
+  filter(season >=2004)%>%
+  arrange(subcol, season, season_fy)%>%
+  mutate(subcol = as.factor(subcol))%>%
+  #only counted "10 manageable"subcolonies according to journal entry so ignore that year since not comparable
+  filter(season != 2010)
+
+#create a list of all the seasons
+seas_list<-unique(count_subcol$season)
+
+#makes list of all subcols counted in 0405  
+subcol_list <- count_subcol%>%
+  filter(season==2004)%>%
+  distinct(subcol)
+
+#goes through season by season, returning data.frame of subcolonies counted across all seasons
+#subcol 15-17 and 26 counted through 0809, 22 and 18 through 0910, 20 through 1819, etc.
+#removes 15-17, 26, 18, 9-10, 6, and 33-34-35
+for (seas in seas_list){
+  seas_subcol<-count_subcol%>%
+    filter(season == seas)%>%
+    distinct(subcol)
+  subcol_list<-semi_join(subcol_list, seas_subcol)
+}
+
+#create total adult count per season####
+sum_count <-count_subcol%>%
+  filter(subcol %in% subcol_list$subcol)%>%
+  group_by(season)%>%
+  dplyr::summarise_at(vars(active_ct:total_ct), sum)%>%
+  add_row(season = 2010, active_ct = NA, occ_ct = NA, total_ct = NA)%>%
+  arrange(season)
+
+
+# ----- graphing active results ------
+sum_count%>%
+  ggplot(aes(season, active_ct))+
+  geom_col(fill = grey_col)+
+  geom_col(data = subset(sum_count, season==curr_seas), fill = accent)+
+  geom_smooth(method = "lm", se = TRUE, size = 0.7, color = line_color, lty = 2)+
+  #scale_y_continuous(limits = c(2500, 4500), breaks = seq(2500, 4500, by = 500))+
+  scale_x_continuous(labels=seq(2004, curr_seas), breaks = seq(2004, curr_seas) )+
+  xlab("Season")+
+  ylab("Sum of Active")+
+  labs(caption = paste("N =", length(subcol_list$subcol), "subcolonies"))+
+  EOS_axis_plain
+
+#in order to display the formula, cannot have NAs so remove data with NAs
+sum<-sum_count%>%filter(!is.na(active_ct))
+#then add equation to plot
+count_line<-lm(sum$active_ct~(sum$season))
+
+#create an extra column with percent change for each season to use in the text of the report
+sum_count<-sum_count%>%
+  select(season, active_ct)%>%
+  #lag uses the previous value, such a handy command!
+  mutate(pct_change=((active_ct-lag(active_ct))/lag(active_ct)*100))
+
+```
+
+**M Count Summary**   
+
+We counted breeding pairs in Area M on `r {format(as.Date(work_dates$NestCountM[work_dates$Season==f_path]), format = "%B %d, %Y")}`, one day after our drone survey. There was no NZ aerial survey today because of COVID-19. We counted all the usual subcolonies in M except for 33-34-35 because it is too big and we no longer count it (thankfully!). Utilizing the `r {length(subcol_list$subcol)}` subcolonies counted every season from 0405 to `r {curr_seas}`, there were `r {sum_count$active_ct[sum_count$season == curr_seas]}` active nests, `r {sum_count$active_ct[sum_count$season == curr_seas]-sum_count$active_ct[sum_count$season == curr_seas-1]}` more than last season. This translates to a `r {round((sum_count$active_ct[sum_count$season == curr_seas]-sum_count$active_ct[sum_count$season == curr_seas-1])/sum_count$active_ct[sum_count$season == curr_seas-1]*100, 3)}`% increase from last year. Comparatively, the last five years saw an average of `r round(mean(sum_count$pct_change[sum_count$season>curr_seas-6 & sum_count$season!=curr_seas], na.rm=TRUE), digits = 2)`% growth, excluding the most recent season, despite a time series average of `r round(mean(sum_count$pct_change, na.rm=TRUE), digits = 2)`% increase each year.  
+
+
+#### Chick Counts
+Chicks in M subcolonies were counted on `r {format(as.Date(work_dates$ChickCountM[work_dates$Season==f_path]), format = "%B %d, %Y")}`. 
+
+## Drone Counts 
+
+We conducted two official surveys. The first on `r {format(as.Date(work_dates$UAVNestSurvey[work_dates$Season==f_path]), format = "%B %d, %Y")}` for active nests. There were two pilots (GB and AS) who flew 15 routes. It took about 8 hours to complete from door to door (10:30-19:00) and a couple routes had to be reflown. The second was on `r {format(as.Date(work_dates$UAVChickSurvey[work_dates$Season==f_path]), format = "%B %d, %Y")}` to survey the chicks. AS and PL completed 15 routes in about 8 hours door to door (10:08-18:00) with one route reflown and one broken propeller. 
+
+We also conducted three surveys at Royds. The first survey was on November 21, 2020 which was flown twice, in order to confirm the routes would work. We then flew on December 01, 2020 to look at active territories. It took just 11 minutes and one route. The last survey was on January 16, 2021 for chicks. Annie flew it twice to see how much lighting changed from the morning to the afternoon and if that would affect our ability to count chicks. 
+
+```{r drone count, fig.cap="Difference between ground and UAV counts at Crozier by subcolony. Ground and UAV counts were averaged across two different counters. UAV counts conducted in ARCGis from Orthomosaic. Red signifies that more chicks or adults were counted by UAV while purple shows that more were counted on the ground. Dashed line represents if ground and UAV count were equal.", fig.height=3}
+
+# THIS SECTION CAN ONLY RUN IF THE MOST RECENT SEASON'S UAV PHOTOS HAVE BEEN COUNTED####
+
+# To make these files:
+# I exported the attribute table of the count shape file as a .csv file
+# then I modified/ran the count_analysis script found in S031/S0312021/croz2021/counts/ADPE census to tally by subcolony and add the initials of the person who counted and wrote this file
+
+#read in UAV counts 
+chct_UAV_raw<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/croz",f_path,"/counts/ADPE census/croz_chickcount_UAV_", f_path,".csv", sep = ""))%>%
+  mutate(season = 2020)%>%
+  rename(ch_ct=chick, col = colony)
+
+#average the chick count across the two observers
+chct_UAV_avg<-chct_UAV_raw%>%
+  group_by(subcol, count_method, season)%>%
+  summarise(ch_ct = mean(ch_ct))
+
+#get chick count from compiled chick data
+chct_ground_raw<-ch_count_raw%>%
+  filter(season==curr_seas)%>%
+  mutate(count_method ="ground")%>%
+  select(season, count_method, subcol, ch_ct)
+
+#join chick ground and uav counts
+curr_chct<-full_join(chct_ground_raw, chct_UAV_avg)%>%
+  tidyr::pivot_wider(names_from = count_method, values_from = ch_ct)%>%
+  mutate(type = "Chick Count")
+
+#adult counts
+adct_UAV_raw<-read.csv("Z:/Informatics/S031/S0312021/croz2021/counts/ADPE census/croz_adultcount_UAV_2021.csv")%>%
+  rename(active_ct = active)%>%
+  group_by(subcol, count_method)%>%
+  summarise(active_ct = mean(active_ct))%>%
+  mutate(subcol=as.character(subcol), season =curr_seas)
+
+#filter the compiled count file for subcolonies counted in the current season
+adct_ground_raw<-ad_count_raw%>%
+  filter(season==curr_seas)%>%
+  select(subcol, active_ct)%>%
+  mutate(count_method="ground")%>%
+  mutate(subcol = as.character(subcol), season = curr_seas)
+
+#join the ground and uav counts together
+curr_adct<-full_join(adct_ground_raw, adct_UAV_raw)%>%
+  tidyr::pivot_wider(names_from = count_method, values_from = active_ct)%>%
+  mutate(type="Active Count")
+
+#join the adult and chick counts together and figure out difference
+UAV_count<-full_join(curr_adct, curr_chct)%>%
+    mutate(dif = UAV_dot-ground, perc = dif/UAV_dot*100)
+
+
+#plot the differences
+UAV_count%>%
+  #remove subcolonies that weren't counted by both UAV and ground
+  filter(!is.na(ground)&!is.na(UAV_dot))%>%
+  ggplot(aes(ground, UAV_dot, col = dif))+
+  geom_abline(slope = 1, intercept = 0, lty = 2)+
+  geom_point(size = 2)+
+  facet_wrap(~type)+
+  scale_color_gradient2(low = "blue4", mid = "plum1", high = "red3", name = "Raw\nDifference")+
+  scale_x_continuous(name = "Ground Count")+
+  scale_y_continuous(name="UAV count")+
+  EOS_axis+
+  theme(axis.text.x=element_text(color=c("black", "black", "black")), axis.ticks.x=element_line(size=c(0.3,0.3,0.3)))
+
+#this summary table sums the total number counted across all subcolonies both on the ground and on the image. it is useful for the text of the report
+all_count_sum<-UAV_count%>%
+  #omit any subcolonies that weren't counted in both methods, so any one with NA
+  na.omit(ground)%>%
+  na.omit(UAV_dot)%>%
+  #group ground counts and UAV counts together
+  group_by(type)%>%
+  summarise(ground = sum(ground), UAV_dot = sum(UAV_dot), dif = sum(dif))%>%
+  mutate(perc=dif/UAV_dot*100)
+
+```
+
+Generally, we counted more chicks but fewer active territories per subcolony from the UAV photo than on the ground. 
+
+After summing all subcolonies together, we counted `r abs(all_count_sum$dif[all_count_sum$type == "Active Count"])` fewer active nests from the UAV than the ground, a `r round(all_count_sum$perc[all_count_sum$type == "Active Count"], digits = 2)`% difference.
+We counted `r abs(all_count_sum$dif[all_count_sum$type == "Chick Count"])` more chicks from the UAV than the ground, a `r round(all_count_sum$perc[all_count_sum$type == "Chick Count"], digits = 2)`% difference. 
+
+
+
+## Productivity  
+
+```{r productivity, fig.cap = paste('Productivity or Chicks/Pair by season and colony with overall colony average as dashed lines. Overall average for Crozier is ',round(all_mean$mean[all_mean$col=="croz"], digits = 2), ' chicks per pair. The overall average for Royds is ', round(all_mean$mean[all_mean$col=="royd"], digits = 2), ' chicks per pair. For both colonies, the productivity of each subcolony counted that season was determined and then the productivity across all subcolonies counted that season was averaged to determine the season productivity. The median value is the bar in the box plot and the box represents the first and third quartiles. The upper and lower whiskers extend no farther than 1.5 the interquartile range (distance between the first and third quartiles) and outliers are denoted by dots.', sep = ''), fig.width=8, fig.height=3}
+
+
+ch_count <- ch_count_raw%>%
+  #filter out subcolonies and seasons not used in adult count
+  filter(season != "1011")%>%
+  select(season, subcol, ch_ct)
+#values for 14-14a and 21-24 not merged but more accurate when they are separate in years when the were separate because more indicative of the subcol
+
+ch_per_pair <- count_subcol%>%
+  #using all subcolonies that were counted each season
+  #filter(subcol %in% subcol_list$subcol)%>%
+  select(col, season, season_fy, subcol, active_ct)%>%
+  left_join(ch_count)%>%
+  mutate(prod = ch_ct/active_ct)
+
+sum_prod <-ch_per_pair%>%
+  group_by(season)%>%
+  summarise(productivity = mean(na.omit(prod)))
+
+# royds productivity ######
+r_prod <-r_all_count_raw%>%
+  filter(!is.na(ch_ct)&!is.na(active_ct))
+
+curr_prod<-r_all_count_raw%>%
+  filter(season_fy ==curr_seas)
+
+  #for 1011, it appears that active count for subcol 23 entered in spot for 21 and vice versa. cannot confirm with notebooks because not available but confirmed that in Dave's notebook, subcol 21 had 213 chicks on chick count day. therefore, impossible that there were 39.5 active territories. more likely the 209.5 belongs with subcol 21 and the 39.5 belongs with 23 where there were 42 chicks
+  r_prod[r_prod$subcol=="23"&r_prod$season =="1011","active_ct"]<-39.5
+  r_prod[r_prod$subcol=="21"&r_prod$season =="1011","active_ct"]<-209.5
+
+#determine productivity for royds
+r_prod <-r_prod%>%
+  mutate(prod = ch_ct/active_ct)
+
+# in 1112, subcol 8 had 0 active nests and 1 chick counted so prod is inf, replacing with NA
+r_prod[r_prod$subcol=="8"&r_prod$season =="1112","prod"]<-NA
+# also in 1112, subcol 19 had avg 2.5 chicks/nest which is impossible so replacing with NA because cannot get to the bottom of it atm
+r_prod[r_prod$subcol=="19"&r_prod$season =="1112","prod"]<-NA
+
+
+#bind royds and crozier together for graphing purposes
+all_count<-rbind(r_prod, ch_per_pair)%>%
+  filter(!is.na(prod)&season_fy>2003)
+# ----- plot productivity -----
+
+#modified from annies code in 2021
+# Plot time series together ####
+#apparently you need a separate data frame for mean values for ablines so here it is
+
+all_mean<-all_count%>%
+  filter(!is.na(prod))%>%
+  group_by(col)%>%
+  summarise(mean = mean(prod, na.rm = TRUE))
+
+#plot productivity
+ggplot(all_count, aes(factor(season_fy),prod))+
+   #geom_label(data = all_mean, aes(x =factor(2006), y = mean, label = signif(mean, digits = 3), fill = factor(col)), vjust = 1.2, size = 3, col = "black", fontface = "bold", alpha = 0.6)+
+  geom_boxplot(aes(fill = factor(col)),position = position_dodge2(preserve = 'single')  )+
+  geom_hline(data = all_mean, aes(yintercept=mean, col = factor(col)),size=0.6, lty=2)+
+  ylab("Breeding success\n(chicks/pair)")+
+  xlab("Season")+
+  scale_color_manual(values=c(croz_color, royd_color), name = "Colony", labels = c("Crozier", "Royds"))+
+  scale_fill_manual(values=c(croz_color, royd_color), name = "Colony", labels = c("Crozier", "Royds"))+
+  scale_x_discrete(labels=seq(2004, curr_seas), breaks = seq(2004, curr_seas) )+
+  guides(color = FALSE)+
+  EOS_axis_plain
+  
+
+```
+
+
+
+**Crozier:** Chicks per active territory (pair) at Crozier in `r {curr_seas}` was `r {round(mean(all_count$prod[all_count$season_fy==curr_seas&all_count$col=="croz"]),3)}`, slightly lower the long-term mean of `r {round(all_mean$mean[all_mean$col =="croz"], 3)}` (0405-`r {curr_seas}`) chicks per pair.
+
+**Royds:** At Royds, chicks per pair in `r {curr_seas}` was `r {round(mean(all_count$prod[all_count$season_fy==curr_seas&all_count$col=="royd"]),3)}`, which was above the average of `r {round(all_mean$mean[all_mean$col =="royd"], 3)}`. 
+
+
+# Chick Condition Time Series
+
+```{r chick condition time series, fig.cap = paste('Chick condition by colony and season, separted by week, with dashed lines as average of each colony and week. Crozier week 2 average ', round(cc_mean$mean[cc_mean$COLONY=="CROZ"&cc_mean$WEEK==2], digits = 0), ' grams and Crozier week 4 average is ',round(cc_mean$mean[cc_mean$COLONY=="CROZ"&cc_mean$WEEK==4], digits = 0), ' grams. Royds week 4 average is ', round(cc_mean$mean[cc_mean$COLONY=="ROYDS"&cc_mean$WEEK==4], digits = 2),' grams. Week 2 chick condition stopped in 2015 for Royds. The median value is the bar in the box plot and the box represents the first and third quartiles. The upper and lower whiskers extend no farther than 1.5 the interquartile range (distance between the first and third quartiles) and outliers are denoted by dots.', sep=''), fig.width=8, fig.height=5}
+
+
+#this file was originally created in 2021 using /s0312021/EOS_report/code/compile_data/croz_chick_con_compile.R to compile chick condition data from 1996 season to 2020 season
+c_cc_all <- read.csv(paste("Z:/Informatics/S031/s031",f_path,"/EOS_report/data/croz_chick_con_compiled_v2021-04-02.csv", sep =""))%>%
+  mutate(NEST_NO = as.character(NEST_NO))
+
+#this file was originally created in 2021 using /s0312021/EOS_report/code/compile_data/royd_chick_con_compile.R to compile chick condition data from 1997 season to 2020 season
+#week 4 chick condition stopped in 2016
+r_cc_all <- read.csv(paste("Z:/Informatics/S031/s031",f_path,"/EOS_report/data/royd_chick_con_compiled_v2021-04-02.csv", sep =""))
+
+#join royds and crozier chick condition together
+cc_all <- full_join(c_cc_all, r_cc_all)
+
+#make a dataframe for each week and each colony, helpful for graphing later on
+cc_mean<-cc_all%>%
+  #only want week 2 and week 4 chick con
+  filter(WEEK ==2| WEEK ==4)%>%
+  group_by(COLONY, WEEK)%>%
+  #take the mean of adj weight
+  summarise(mean = mean(ADJ_WT, na.rm=TRUE))
+
+#make labels for graph
+week_labels <-c("Week 2", "Week 4")
+names(week_labels)<-c(2,4)
+
+#for week 2 time series
+cc_all%>%
+  select(COLONY,YEAR,WEEK,ADJ_WT)%>%
+  #filter(!is.na(COLONY))%>%
+  filter(WEEK==2|WEEK==4)%>%
+  ggplot()+
+  #geom_label(data = subset(cc_mean, WEEK==2), aes(x = c("2000", "2005"),y = 4500, label = paste(round(mean, digits =0), "g"), fill = COLONY), size = 3, label.padding=unit(0.25,"lines"), color = "black", fontface = "bold", show.legend=FALSE, alpha = 0.6)+
+  #geom_label(data = subset(cc_mean, WEEK==4), aes(x = c("2000", "2005"),y = 1000, label = paste(round(mean, digits =0), "g"), fill = COLONY), size = 3, label.padding = unit(0.25, "lines"), color = "black", fontface = "bold", show.legend=FALSE, alpha = 0.6)+
+  #preserve (single) means that if the boxplot is "alone" or ungrouped for that year, the box plot remains skinny as if it were still grouped
+  geom_boxplot(aes(x = factor(YEAR),y = ADJ_WT, fill = factor(COLONY)), width = 0.6, position = position_dodge2(preserve = 'single') )+
+  geom_hline(data = cc_mean, aes(yintercept=mean, color = COLONY), lty = 2, lwd = 0.6, alpha = 0.9)+
+  facet_wrap(~WEEK, nrow = 2,labeller = labeller(WEEK = week_labels))+
+  scale_y_continuous(name = "Mass (g)", breaks = seq(0,5000, by = 1500), labels = seq(0, 5000, by= 1500))+
+  scale_x_discrete(name = "Season", breaks = seq(1992, curr_seas), labels = seq(1992, curr_seas))+
+  scale_color_manual(values=c(croz_color, royd_color), name = "Colony", labels = c("Crozier", "Royds"))+
+  scale_fill_manual(values=c(croz_color, royd_color), name = "Colony", labels = c("Crozier", "Royds"))+
+  guides(color = FALSE)+
+  EOS_axis
+
+#data frame to get current season's mean of chick condition for report text
+cc_seas<-cc_all%>%
+  filter(YEAR == curr_seas)%>%
+  group_by(WEEK, DATE, COLONY)%>%
+  summarise(n = n(), mean = mean(ADJ_WT))
+
+```
+
+#### Chick condition
+
+\  
+
+**Crozier:** Chick condition was measured during week 2 (`r {format(as.Date(cc_seas$DATE[cc_seas$WEEK==2&cc_seas$COLONY=="CROZ"]), format = "%B %d, %Y")}`) in Area B (n=`r {cc_seas$n[cc_seas$WEEK==2&cc_seas$COLONY=="CROZ"]}`) and week 4 (`r {format(as.Date(cc_seas$DATE[cc_seas$WEEK==4&cc_seas$COLONY=="CROZ"]), format = "%B %d, %Y")}`) in Area M during chick banding (n = `r {sum(cc_seas$n[cc_seas$WEEK==4&cc_seas$COLONY=="CROZ"])}`). Chick mass during week 2 was slightly above average (`r {cc_seas$mean[cc_seas$WEEK==2&cc_seas$COLONY=="CROZ"]}` grams) but week 4 dropped to roughly average (`r {round(mean(cc_seas$mean[cc_seas$WEEK==4&cc_seas$COLONY=="CROZ"]), digits =0)}` grams).
+
+**Royds:** Chick condition was measured during banding (roughly week 4) on (`r {format(as.Date(cc_seas$DATE[cc_seas$WEEK==4&cc_seas$COLONY=="ROYDS"]), format = "%B %d, %Y")}`) (n = `r {sum(cc_seas$n[cc_seas$WEEK==4&cc_seas$COLONY=="ROYDS"])}`). Chick mass during week 4 was rougly average at average (`r {round(mean(cc_seas$mean[cc_seas$WEEK==4&cc_seas$COLONY=="ROYDS"]), digits =0)}` grams).
+
+
+\clearpage  
+
+
+
+# Diet
+
+## Current Season Diet
+```{r diet obs,echo=FALSE, warning=FALSE, fig.cap='Percent type of feed observed through diet observations over a 5 day period. The label on the X-axis denotes the beginning of the 5 day period. No Royds not included this season because not enough diet observations.', fig.height=3, fig.width =6}
+
+# file created with S0312021/EOS_report/code/compile_data/croz_diet_obs_compile.R script which compiles diet observations between the 0304 and 2021 seasons
+# additional seasons were added with the compile_compiled_documents.R script
+
+#load all crozier data
+diet_c<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_diet_obs_compiled_v2021-04-05.csv",sep =""),header=TRUE)
+
+# file created with S0312021/EOS_report/code/compile_data/royd_diet_obs_compile.R script which compiles diet observations between the 0304 and 2021 seasons
+# additional seasons were added with the compile_compiled_documents.R script
+
+# load all royds data
+diet_r<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/royd_diet_obs_compiled_v2021-04-05.csv",sep =""),header=TRUE)%>%
+  mutate(proofed. = as.character(proofed.))
+
+#join all diet obs together
+diet_all <-full_join(diet_r, diet_c)
+
+#make data frame of just this season's diet observations at crozier
+diet_curr <- diet_all%>%
+  filter(season == curr_seas)
+
+# create 5 day chunks automatically based on curr_seas
+#might need to add some more on the end depending on how long you stay
+bins<-as.POSIXct(c(paste(curr_seas,"-12-05", sep =""),paste(curr_seas,"-12-10", sep =""),paste(curr_seas,"-12-15", sep =""),paste(curr_seas,"-12-20", sep =""),paste(curr_seas,"-12-25", sep =""),paste(curr_seas,"-12-30", sep =""),paste(curr_seas+1,"-01-04", sep =""),paste(curr_seas+1,"-01-09", sep =""),paste(curr_seas+1,"-01-14", sep =""),paste(curr_seas+1,"-01-19", sep =""),paste(curr_seas+1,"-01-24", sep =""),paste(curr_seas+1,"-01-29", sep ="")))
+
+
+#group data by 5 days
+diet_curr$bin<- cut(as.POSIXct(diet_curr$Date),breaks=bins, include.lowest=TRUE, labels=bins[-1])
+
+#summarise data by 5 days
+diet_summ_curr <- diet_curr%>%
+  #need to have two separate rows for this
+  group_by(Colony, bin)%>%
+  summarise(mean_krill = mean(p_krill), mean_fish = mean(p_fish), mean_other = mean(p_other))%>%
+  tidyr::pivot_longer(mean_krill:mean_other)%>%
+  #changing name here instead of in plot for easier legend
+  mutate(Colony = replace(Colony, Colony=="CROZ", "Crozier"))%>%
+  mutate(Colony = replace(Colony, Colony=="ROYDS", "Royds"))
+
+# create plot for data #####
+diet_summ_curr%>%
+  #filter out royd for this year because not enough diet obs
+  filter(Colony!="Royds")%>%
+  ggplot(aes(as.POSIXct(bin),value, fill = name))+
+  geom_bar(stat="identity", position ="stack")+
+  #facet_wrap(~colony, ncol=1)+
+  scale_fill_manual(values=c("grey68","palevioletred3","cornflowerblue"),labels=c("Fish", "Krill", "Other"),name="")+
+  ylab("Percent")+
+  xlab("Date")+
+  scale_x_continuous(labels = c("Dec 05", "Dec 15", "Dec 25", "Jan 4", "Jan 14", "Jan 24"), breaks = bins[seq(0,length(bins), by = 2)]) +
+  labs(caption ="Marks beginning of 5 day period where\ndiet obs grouped and averaged")+
+  EOS_theme
+
+         
+```
+
+
+**Crozier:**
+A total of `r {length(diet_curr$Colony[diet_curr$Colony=="CROZ"])}` diet observations were made between `r {format(as.Date(min(diet_curr$Date[diet_curr$Colony=="CROZ"])), format = "%B %d, %Y")}` and `r {format(as.Date(max(diet_curr$Date[diet_curr$Colony=="CROZ"])), format = "%B %d, %Y")}`. The vast majority of the observations were chick feeds. 
+
+
+**Royds:**
+A total of `r {length(diet_curr$Colony[diet_curr$Colony=="ROYDS"])}` diet observations were made between `r {format(as.Date(min(diet_curr$Date[diet_curr$Colony=="ROYDS"])), format = "%B %d, %Y")}` and `r {format(as.Date(max(diet_curr$Date[diet_curr$Colony=="ROYDS"])), format = "%B %d, %Y")}`. The vast majority of the observations were chick feeds. 
+
+
+
+## Diet Observation Time Series
+
+```{r diet time series, echo = FALSE, warning = FALSE, fig.cap = 'Time series of overall proportion of each feed type across the entire season. Not enough diet observations at Royds in 2020 to be included'}
+
+#code chunk originally written by AS from Z:/Informatics/S031/analyses/aeschmidt/dietobs/diet_summary_figs
+
+
+# adjust the dat so it's easier to manipulate/graph
+diet<-diet_all%>%
+  filter(!(is.na(p_fish)&is.na(p_krill)&is.na(p_other)))%>%
+  mutate(p_fish=ifelse(is.na(p_fish)&p_krill==100,0,p_fish))%>%
+  mutate(type=ifelse(p_krill>50,"K","F"))%>%
+  mutate(type=ifelse(p_fish>50,"F",type))%>%
+  mutate(type=ifelse(!is.na(p_other)&p_other>50,"O",type))%>%
+  select(season,Colony,Date,type,p_fish,p_krill,p_other)
+
+# create summary table per season
+diet_summ <- diet%>%
+  filter(!is.na(type))%>%
+  group_by(Colony,season,type)%>%
+  summarise(n=n())%>%
+  mutate(freq = (n / sum(n))*100)%>%
+  ungroup()
+
+#remove diet obs from 2020 at royds because not enough of them
+diet_summ$freq[diet_summ$Colony=="ROYDS"&diet_summ$season==2020]<-NA
+
+# plot diet obs time series #
+
+#labels for graph
+diet_labels <-c("Crozier", "Royds")
+names(diet_labels)<-c("CROZ","ROYDS")
+
+#crozier graph
+diet_summ%>%
+ggplot(.,aes(season,freq,fill=type))+
+  geom_bar(stat="identity")+
+  facet_wrap(vars(Colony), nrow =2, labeller = labeller(Colony = diet_labels))+
+  scale_fill_manual(values=c("grey68","palevioletred3","cornflowerblue"),labels=c("Fish", "Krill", "Other"),name="")+
+  scale_x_continuous(breaks=seq(2003,curr_seas))+
+  ylab("Percent")+
+  xlab("Season")+
+  EOS_axis
+```
+
+
+
+\newpage
+
+# Weighbridge
+
+```{r wb crossings, fig.width = 5, fig.height=4, fig.cap=paste('Number of unique IDs crossing the WB each day. There were ',nrow(uniq_ids),' unique IDs read this year. It has not been completely updated, still missing roughly the last 5 days of data.', sep = '')}
+
+# original code from Annie schmidt found here:
+# "Z:\Informatics\S031\S0312021\croz2021\wb\wb_AS.R"
+# modified to not create document and just read in document
+
+setwd(paste("Z://Informatics/S031/S031",f_path,"/croz",f_path,"/wb/logs/", sep=""))
+
+# functions for dealing with wb data
+source("wb_functions.R")
+
+# call in data that has already been processed
+wbdata<-fread("wbdata_AS.csv", stringsAsFactors = FALSE)
+counter<-max(na.omit(wbdata$sf)) 
+
+# make some figs
+# read in additional data
+wb_nests<-read.csv(paste("../wb_nests_",f_path,".csv", sep =""))
+wb_band_data<-read.dbf("../wb_band_data.dbf")
+wb_band_data<-wb_band_data[,1:26] #drops the x's induced by read.dbf from foxpro tables
+
+
+uniq_ids <- filter(na.omit(distinct(wbdata, avid)),avid<9999999 |avid>600000000) #  filter gets rid of the bogus 599 numbers
+xings_summary<-wbdata%>%
+  filter(event=="ID",avid<9999999 |avid>600000000)%>%
+  mutate(date=as.Date(datetime))%>%
+  distinct(date,avid)%>%
+  # mutate(day=day(datetime))%>%
+  group_by(date)%>%
+  summarise(n=n())
+
+ggplot(xings_summary,aes(date,n))+
+  geom_bar(stat="identity", colour = "White", fill =grey_col)+
+  labs(y="Number of IDs",x="Date")+ #caption=paste("updated",Sys.Date()))+
+  scale_y_continuous(breaks=seq(0, 60, by = 10), labels = seq(0,60, by=10))+
+  scale_x_date(breaks="10 days", date_labels = "%b %d")+
+  #ggtitle(paste("Number of IDs read by WB per day ", f_path, sep = ""), subtitle = paste("number of IDs read this year:",nrow(uniq_ids)))+
+  EOS_theme
+
+```
+
+#### The Weighbridge This Year  
+
+The WB was set up on `r {format(as.Date(work_dates$WBinstall[work_dates$Season==f_path]), format = "%B %d, %Y")}`. WB was removed on `r {format(as.Date(work_dates$WBtakedown[work_dates$Season==f_path]), format = "%B %d, %Y")}`. The weighbridge functioned pretty well all season. However, at the beginning of January, it started writing HUGE files filled and the calibration was off. Annie recalibrated multiple times, including with the trusted 1-liter full pee-bottle weight. But after running all the tests, she still couldn't get to the bottom of what was causing the large file output. 
+
+`r {nrow(uniq_ids)}` unique pit-tags were read by the WB this season with `r {sum(xings_summary$n)}` total crossings of tagged birds. The maximum number of crossings was `r {max(xings_summary$n)}` on `r {format(as.Date(xings_summary$date[xings_summary$n==max(xings_summary$n)]), format = "%B %d, %Y")}`. Pit-tagged and measured flipper and mass WB occurred on January 19, 2021. 
+
+
+## Weighbridge Counts Time Series
+```{r wb time series, fig.height=3, fig.cap='The maximum number of active nests (dark green) overlaided with the maximum number of chicks (light green) counted in the weighbridge subcolony recorded from a photo or ground count by season. Chicks were summed in seasons where they were counted in two separate categories of chicks and creched chicks.'}
+
+
+#this file is created using S0312021/EOS_report/code/compile_data/croz_wb_count_compile.R which adds 2021 data to the already compiled 07-20 wb check
+# subsequent years added with the compile_compiled_documents.R script
+
+#read wb count compiled document
+wb_raw <- read.csv(paste(file="Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_wb_count_compiled_v2021-04-06.csv", sep =""))
+
+#clean up the data to add JDates and change formating to be able to graph
+wb <- wb_raw%>%
+  #remove counts for ref or wb2 subcolonies
+  filter(SUBCOL =="WB")%>%
+  mutate_if(is.factor,list(~na_if(.,"NC")))%>%
+  mutate_at(vars(ADULTS_PHOTO:CRECHED),as.character)%>%
+  mutate_at(vars(ADULTS_PHOTO:CRECHED),as.numeric)%>%
+  mutate_at(vars(COLONY,SUBCOL),tolower)%>%
+  #add JDate and StudyDay to help with comparisons
+  mutate(DATE=as.Date(DATE, format="%Y-%m-%d"),JDATE=as.numeric(format(DATE,"%j")),  STUDYDAY = ifelse(JDATE>=290,JDATE-290,JDATE+75),  YEAR = as.numeric(format(DATE, "%Y")), SEASON = as.factor(ifelse(JDATE>290,YEAR,YEAR-1)))
+
+#graph of active peak and peak chick by season
+
+#convoluted way to get max chicks
+wb_chick<-wb%>%
+  #one entry in 2007 put total chicks in Cr column and chicks with parents in chick column so this replaces value of chick with that of creche
+  mutate(CHICKS = replace(CHICKS, DATE == "2008-01-11", 196))%>%
+  #in a couple of years, counted chicks with adults and in creche separately so code looks for if chicks is less than creche (suggesting chicks is not the true total) and replaces that with the sum of the two but in order for it to run correctly, cannot have NAs. a bit convoluted
+  mutate(CRECHED = ifelse(is.na(CRECHED), 0, CRECHED))%>%
+  mutate(CHICKS = ifelse(is.na(CHICKS), 0, CHICKS))%>%
+    #some years, chicks and cr counted separately, this combines them if necessary
+  mutate(CHICKS = ifelse(CHICKS<CRECHED, CRECHED+CHICKS, CHICKS))%>%
+  group_by(SEASON)%>%
+  summarise(max_chick = max(CHICKS, na.omit=TRUE))%>%
+  #change typos to NA
+  mutate(max_chick = ifelse(max_chick<5, NA, max_chick))%>%
+  mutate(SEASON=as.numeric(as.character(SEASON)))%>%
+  filter(!is.na(SEASON))
+
+#create data frame with the max active and the max chicks per season for ease of graphing
+wb_plot<-wb%>%
+  group_by(SEASON)%>%
+  #get max active count by season
+  summarise(max_active = max(ACTIVE,na.rm=TRUE))%>%
+  ungroup()%>%
+  mutate(SEASON=as.numeric(as.character(SEASON)))%>%
+  filter(!is.na(SEASON))%>%
+  #join max chicks to max active count
+  full_join(wb_chick, by = "SEASON")
+
+#plot it
+wb_plot%>%
+  ggplot()+
+  #columns for max active count
+  geom_col(aes(SEASON, max_active, fill = col1), width = width)+
+  #columns for max chicks slightly offset
+  geom_col(aes(SEASON, max_chick, fill = col2), width = width, position = position_nudge(nudge_width), alpha = alpha)+
+  #geom_point(color = col1)+
+   # geom_line(aes(color=col1, linetype = "Active\nTerritories"), size = 0.8)+
+    ylim(0,210)+
+    ylab("Max # Counted")+
+  xlab("Season")+
+        # caption ="season labeled by first year i.e. 2017-2018 season is 2017")+
+  #geom_line(aes(SEASON, max_chick, color = col2, linetype ="Chicks"), lwd = 0.8)+
+  #geom_point(aes(SEASON, max_chick, color = col2))+
+  scale_fill_manual(values = c(col2, col1),labels = c("Chicks","Active \nTerritories"), guide = "legend")+
+  #scale_linetype_manual("Legend", values = c("Active\nTerritories" = 1, "Chicks" = 2))+
+  scale_x_continuous(labels=seq(2007, curr_seas), breaks = seq(2007, curr_seas) )+
+  guides(linetype = FALSE, fill = guide_legend(title = "Legend"))+
+  EOS_axis_plain
+```
+
+We followed `r {length(unique(wb_nests$nest))}` nests in the WB subcolony. `r {length(wb_nests$out_code[grepl("CR", wb_nests$out_code)])/2}` nests reached the CR stage. 
+The maximum number of actives nests from our counts was `r {wb_plot$max_active[wb_plot$SEASON==curr_seas]}` and `r {wb_plot$max_chick[wb_plot$SEASON==curr_seas]}` chicks on for an estimated chicks creched per pair of  `r {round(wb_plot$max_chick[wb_plot$SEASON==curr_seas]/wb_plot$max_active[wb_plot$SEASON==curr_seas], digits = 3)}`.
+
+
+
+\newpage    
+
+
+# Tagging activity Summary
+No tags or devices were deployed this year.
+
+# IACUC Permit Takes
+
+```{r permit takes}
+
+#load in band data 
+band_data_raw<- read.csv(paste("Z:/Informatics/S031/S031",f_path,"/croz",f_path,"/band/banddata_",f_path,".csv", sep =""))
+
+# load in pit tag data
+wb_band_data_raw<-read.csv(paste("Z:/Informatics/S031/S031", f_path,"/croz",f_path,"/wb/wb_band_data_",f_path,".csv", sep =""))
+
+#find entries where BG noted it's been fixed
+# not completely fool proof because lots of ways to say BG fixed and cannot just search for BG because sometimes BG referenced and not fixed i.e. "BG needs to be fixed"
+birds_handled <- all_rs_chick%>%
+  filter(SEASON_FYR == curr_seas, COLONY == "CROZ")%>%
+  mutate_at(vars(NOTES), as.character)%>%
+  #filter(SEASON_FYR==curr_seas-1, 
+  filter(grepl("BG FIXED|BG1 FIXED|BG2 FIXED|BG3 FIXED|BG fixed|BG1 fixed|BG2 fixed|BG3 fixed
+                |FIXED BANDGAP|FIXED THE BAND|BAND FIXED", NOTES))
+
+#if you want to see how many nests we marked as flagged in FoxPro, but this is kinda an estimation because not reliably filled in
+#nests_flagged <- curr_bb_raw%>%
+#  filter(FLAGGED =="Y" | FLAGGED == "y")%>%
+#  group_by(COLONY)%>%
+#  summarise(n = length(FLAGGED))
+
+chicks_banded<-band_data_raw%>%
+  filter(!is.na(wing))%>%
+  group_by(colony)%>%
+  summarise(banded = length(colony))
+
+#figure out how many we measured or banded in week 4
+cc_wk4<-cc_all%>%
+  filter(YEAR == curr_seas&WEEK ==4)%>%
+    #because band data for chick condition entered in notes at crozier and in band at royds, need to use if, else to filter for different criteria
+  filter(ifelse(COLONY=="ROYDS",is.na(BAND),grepl("NB", NOTES)))%>%
+  group_by(COLONY)%>%
+  summarise(NB = length(COLONY))%>%
+  mutate(COLONY =replace(COLONY, COLONY =="ROYDS", "ROYD"))
+
+#figure out how many we measured or banded in week 2
+#week 2 not done at Royds
+cc_wk2<-cc_all%>%
+  filter(YEAR == curr_seas&WEEK ==2)%>%
+  group_by(COLONY)%>%
+  summarise(wk2 = length(COLONY))
+
+cc_meas<-chicks_banded%>%
+  full_join(cc_wk4, by = c("colony"="COLONY"))%>%
+  full_join(cc_wk2, by = c("colony"="COLONY"))%>%
+  rowwise()%>%
+  #determine total number that were measured by adding the number that were measured (NB) and banded in week 4 to the number measured in wk2
+  mutate(tot_meas = banded+NB+ifelse(is.na(wk2),0, wk2))
+
+
+```
+
+
+**Bandgaps Fixed:**   
+`r {n_distinct(birds_handled$BANDNUMB)}` band gaps were fixed at Crozier this season.
+
+**PIT tags:**
+`r {length(wb_band_data_raw$avid)}` PIT tags implanted at Crozier(`r {length(wb_band_data_raw$avid[wb_band_data_raw$age =="A"])}` adults, `r {length(wb_band_data_raw$avid[wb_band_data_raw$age =="C"])}` chicks)
+
+**Banding Activites:**
+`r {length(band_data_raw$colony[band_data_raw$colony])}` bands put out (`r {length(band_data_raw$colony[band_data_raw$colony=="CROZ"])}` at Crozier,  `r {length(band_data_raw$colony[band_data_raw$colony=="ROYD"])}` at Royds)
+
+
+**Nests Flagged:** `r {sum(bb$bb[bb$SEASON_FYR == curr_seas &bb$type == "breed"])}` nests marked (`r {bb$bb[bb$SEASON_FYR == curr_seas &bb$COLONY=="CROZ"&bb$type == "breed"]}` at Crozier, `r {bb$bb[bb$SEASON_FYR == curr_seas &bb$COLONY=="ROYD"&bb$type == "breed"]}` at Royds)  
+
+**Chicks Measured:**
+`r {sum(cc_meas$tot_meas)}` were measured (`r {cc_meas$tot_meas[cc_meas$colony=="CROZ"]}` at Crozier, `r {cc_meas$tot_meas[cc_meas$colony=="ROYD"]}` at Royds).
+
+At Crozier, `r {cc_meas$banded[cc_meas$colony=="CROZ"]}` of those were banded. At Royds,  `r {cc_meas$banded[cc_meas$colony=="ROYD"]}` of those were banded.
+
+
+**Fish tags:**  
+There were no chicks fish tagged this year. 
+
+**Devices:**  
+There were no devices deployed or removed this year. 
+
+
+
+# Seawatch
+
+```{r mammals formatting}
+# this file was created using s0312021/EOS_report/code/compile_data/croz_seawatch_compile.R which compiles seawatch data from the first season it was collected in 2007 to 2020. 
+#subsequent years added with the compile_compiled_documents.R script
+
+# load mammal data
+seawatch_raw<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_seawatch_compiled_v2021-04-06.csv",sep=""))
+
+#make sure date is in the appropriate format
+seawatch_raw$date <- as.POSIXct(as.character(seawatch_raw$date))
+
+#add jdate and study day to date frame
+#study day useful for parsing through data collected on the same day
+seawatch<-seawatch_raw%>%
+   mutate(date=as.Date(date),jdate=as.numeric(format(date,"%j")),  studyday = ifelse(jdate>=290,jdate-290,jdate+75))
+
+#make a data frame with the current season's seawatch data
+curr_seawatch<-seawatch%>%
+  filter(season_yr==curr_seas)
+
+#create a summary dataframe for graphing
+watch_summ <- seawatch%>%
+  #figure out how much time elapsed betwen the start and end of a seawatch
+  mutate(tot_time = difftime(as.POSIXct(time_end, format = "%H:%M"),as.POSIXct(time_start, format = "%H:%M"), unit = "min"))%>%
+  group_by(season_yr)%>%
+  #sum the total minutes by season
+  summarise(total_min = as.numeric(sum(tot_time, na.rm = TRUE)))%>%
+  filter(!is.na(season_yr))
+  
+#bin seawatch into 5 day periods, if you want to more closely analyze the current seawatch ata
+#bins_mamm<-seq(30, 80, by=5)
+#curr_seawatch$bin<-cut(curr_seawatch$studyday, breaks = bins_mamm, include.lowest = TRUE)
+
+# calculate max # KW seen each day
+KW_summ <- curr_seawatch%>%
+  filter(species_short=="KIWH")%>%
+  group_by(date, time_start)%>%
+  summarise(sum=sum(as.numeric(num.in.group)))%>%
+  group_by(date)%>%
+  summarise(max=max(sum))
+
+# max number of minke
+MW_summ <- curr_seawatch%>%
+  filter(species_short=="MIWH")%>%
+  group_by(date, time_start)%>%
+  summarise(sum=sum(as.numeric(num.in.group)))%>%
+  group_by(date)%>%
+  summarise(max=max(sum))
+
+# max number of WESE
+WESE_summ <- curr_seawatch%>%
+  filter(species_short=="WESE")%>%
+  group_by(date, time_start)%>%
+  summarise(sum=sum(as.numeric(num.in.group)))%>%
+  group_by(date)%>%
+  summarise(max=max(sum))
+
+#determine how many days whales were seen
+sw_whale<-seawatch%>%
+  filter(species_short=="KIWH"|species_short=="MIWH"|species_short =="WHALE SP.")%>%
+  group_by(season_yr)%>%
+  summarise(whale_days = n_distinct(studyday))
+
+#make a summary table
+sw_sum <-seawatch%>%
+  group_by(season_yr)%>%
+  #determine first seawatch observation, last seawatch observation, and number of distinct seawatches per season 
+  #use date and time_start to determine distinct seawatches for days when multiple seawatches conducted, start time is different
+  summarise(first_obs = min(date), last_obs = max(date), seawatches = n_distinct(date, time_start))%>%
+  #join the total number of whale days
+  left_join(sw_whale, by = "season_yr")%>%
+  mutate(potential_days = as.numeric(last_obs-first_obs), perc_whale = whale_days/potential_days*100, season_yr = as.numeric(as.character(season_yr)))%>%
+  #remove last NA row
+  filter(!is.na(season_yr))
+
+```
+
+#### Overview   
+
+There were `r {sw_sum$seawatches[sw_sum$season_yr==curr_seas]}` official seawatches conducted this year.
+In total, we spent `r {floor(watch_summ$total_min[watch_summ$season_yr==curr_seas]/60)}` hours and `r {watch_summ$total_min[watch_summ$season_yr==curr_seas]-60*floor(watch_summ$total_min[watch_summ$season_yr==curr_seas]/60)}` minutes watching the sea. Because of reduced personnel, we were not able to conduct a lot of official seawatches.
+
+**Killer Whales:** We recorded killer whales on `r {length(KW_summ$date)}` days. The max number was `r {max(KW_summ$max)}`.
+
+**Minke whales:** We recorded minke whales on `r {length(MW_summ$date)}` days. The max number was `r {max(MW_summ$max)}`.
+
+**Weddell Seals:** The max number of seals was `r {max(WESE_summ$max)}`.
+
+
+## Whale Time Series
+```{r seawatch time series, fig.height = 3, fig.cap = "Percent of eligbible seawatch days in which whales were seen. The percentage was calculated by determining the number of days between the first seawatch observation and the last observation. (The observations did not have to be collected on official seawatches.) This total was considered the total number of days in which whales could possible have been seen. Then, the number of days in which whales, regardless of the species, were actually spotted was determined."}
+
+# plot time series of percent whales seen #
+
+sw_sum%>%
+  ggplot(aes(season_yr, perc_whale))+
+  #make sure the bar for this season is red
+  geom_bar(aes(fill = ifelse(season_yr==curr_seas, "Red", "Grey")), color ="white", stat = "identity")+
+  scale_fill_manual(values = c(grey_col, accent))+
+  #geom_text(label = signif(sw_sum$perc_whale, digits =2), color = "white", vjust = 1.3, size = 3)+
+  scale_x_continuous(name = "Season", breaks = seq(2005,curr_seas), labels = seq(2005,curr_seas) )+
+  scale_y_continuous(name = "Percent of Days\nWhales Seen", limits = c(0,100))+
+  guides(fill = FALSE)+
+  EOS_axis_plain
+
+```
+
+We recorded a whales on `r round(sw_sum$perc_whale[sw_sum$season_yr==curr_seas], digits=2)`% of eligible seawatch days, a much lower percentage than the time series average of whales seen on `r round(mean(sw_sum$perc_whale, na.rm=TRUE), digits=2)`% of possible days. This is most likely because we conducted far fewer official seawatches (and even fewer on Pat's Peak) due to our reduced field camp size.  
+
+## Seal Time Series
+```{r seal time series, fig.height = 3, fig.cap="Maximum number of Weddell Seals observed by season. Data taken from the compiled seawatch file so the Weddell Seal count had to have been entered into a seawatch or mammal spreadsheet."}
+# to plot max number of seals
+
+seal<-seawatch%>%
+  filter(species_short=="WESE")%>%
+  group_by(season_yr)%>%
+  mutate(num.in.group = as.numeric(num.in.group))%>%
+  mutate(season_yr = as.numeric(as.character(season_yr)))%>%
+  filter(!is.na(num.in.group))%>%
+  summarise(max_seal = max(num.in.group, na.omit=TRUE))
+
+
+seal %>%
+  ggplot(aes(season_yr, max_seal))+
+  geom_bar(aes(fill = ifelse(season_yr==curr_seas, "Red", "Grey")), color = "white", stat = "identity")+
+  scale_fill_manual(values = c(grey_col, accent))+
+  #geom_smooth(method = "lm", se = FALSE, lwd = 0.6)+
+  #geom_text(label = signif(seal$max_seal, digits =3), color = "white", vjust = 1.2, size = 3)+
+  scale_x_continuous(name = "Season", breaks = seq(2005,curr_seas), labels = seq(2005,curr_seas) )+
+  scale_y_continuous(name = "Max Number of\nWeddell Seals", breaks = seq(0,175, by = 25), labels = seq(0,175, by = 25) )+
+  guides(fill = FALSE)+
+  EOS_axis_plain
+
+
+
+```
+
+We recorded the most number of Weddell Seals ever (`r seal$max_seal[seal$season_yr==curr_seas]`) this season on `r format(na.omit(as.Date(curr_seawatch$date[curr_seawatch$num.in.group ==seal$max_seal[seal$season_yr==curr_seas]])), format = "%B %d, %Y")`. The majority of the seals were in the farthest back, narrow crack in the ice shelf, past EROOK. It was recorded from the top of the ice field coming back from ERook. 
+
+\newpage  
+
+
+# Emperor Chick Time Series  
+```{r EMPE census, fig.cap=paste('Maximum number of Emperor chicks counted by season. Approximate counts included if no other data for that year. A linear regression (blue dashed line) fitted with a 95\\% confidence interval (shaded). The slope of the line is ', round(coef(empe_line)[2], digits = 2),'. Data also taken from published reports by Kooneyman. Detailed data and method collected can be found in the EMPE\\_census\\_compiled CSV file', sep =''), fig.height=3}
+
+# file created using "Z:\Informatics\S031\S0312021\EOS_report\code\compile_data\EMPE_census_compile.R" which compiles data from 1999 to 2020 using a variety of methods (estimates, photo counts, aerial counts, published counts) documented in the file creation
+EMPE_raw <- read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/EMPE_census_compiled_v2021-04-06.csv",sep=""))
+
+#this code based on AS code for her paper found Z:/Informatics/S031/EMPE_census/empe_trend_analysis
+ep_sum_croz<-EMPE_raw%>%
+  mutate_at(vars(adults:total), as.character)%>%
+  mutate_at(vars(adults:total), as.integer)%>%
+   # calculate average count for years with multiple counts on same day (only true for 2018 at this point)
+  group_by(year,date_taken)%>%
+  summarise(ch_ct=mean(chicks, na.rm=TRUE))%>%
+  select(year, ch_ct)%>%
+  group_by(year)%>%
+  summarise(ch_ct=max(ch_ct, na.rm=TRUE))%>%
+  # convert ch_ct to character to replace
+  mutate(ct_type="croz_ct", ch_ct=ceiling(ch_ct))%>% # (as.numeric(gsub("-Inf",NA,as.character(ch_ct))
+  # Filter to use data starting in 2001
+  filter(year>1997)
+
+
+ep_sum_all<- ep_sum_croz%>%
+  mutate(ch_ct=ifelse(ch_ct==-Inf,NA,ch_ct))%>%
+  group_by(year)%>%
+  arrange(ct_type)%>%
+  slice(1)
+
+
+#plot empe graph
+ep_sum_all%>%
+  ggplot(aes(year, ch_ct))+
+  geom_bar(stat="identity", aes(fill =ifelse(year==curr_seas, "Red", "Grey")))+
+  scale_fill_manual(values = c(grey_col, accent))+
+  #geom_text(label = signif(ep_sum_all$ch_ct, digits =4), color = "white", vjust = 1, size = 3)+
+  geom_smooth(method = "lm", se = TRUE, size = 0.5, lty = 2, col=line_color)+
+  guides(fill = FALSE)+
+  scale_x_continuous(name = "Season", breaks = seq(1999, curr_seas))+
+  scale_y_continuous(name = "# of Chicks", limits = c(0, 2200))+
+  EOS_axis_plain
+
+
+#equation for best fit line for the EMPE count data to include in the caption
+empe_line<-lm(ep_sum_all$ch_ct~ep_sum_all$year)
+
+```
+
+There were `r {ep_sum_all$ch_ct[ep_sum_all$year==curr_seas]}` Emperor chicks counted this year up from `r {ep_sum_all$ch_ct[ep_sum_all$year==curr_seas-1]}` chicks the previous season. This is a `r {round((ep_sum_all$ch_ct[ep_sum_all$year==curr_seas]-ep_sum_all$ch_ct[ep_sum_all$year==curr_seas-1])/ ep_sum_all$ch_ct[ep_sum_all$year==curr_seas-1]*100, digits =2)}`% increase from the previous season.    
+
+\newpage  
+
+
+# Waste  
+
+```{r waste, fig.cap = "Average retro per person per day per season based on type, separated into heavier items (Big Waste) and lighter items (small waste) for ease of viewing. This graphic is mostly for fun...", fig.height=3}
+
+#this file created using "Z:\Informatics\S031\S0312021\EOS_report\code\compile_data\croz_waste_compile.R" which compiles waste from 2016 to 2020
+
+#load in compile waste file
+all_waste<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_waste_compiled_v2021-04-06.csv", sep=""))
+
+#compiled people days for 2016 to 2020 but not something that needs to be done every year. can just not use and either delete the graphs or tweak the graphs to look at total quantity or some other metric
+ppl_arrival<-read.csv(paste("Z:/Informatics/S031/S031",f_path,"/EOS_report/data/croz_people_arrival_dates.csv", sep =""))
+
+ppl<-ppl_arrival%>%
+  mutate(Arrival=as.Date(Arrival, format = "%m/%d/%y"), Departure = as.Date(Departure, format = "%m/%d/%y"))%>%
+  mutate(days_in_field = as.numeric(difftime(Departure, Arrival, unit = "days")))%>%
+  group_by(Season)%>%
+  summarise(ppldays = sum(days_in_field, na.rm=TRUE))%>%
+  rename(season=Season)
+
+
+all_waste_sum<-all_waste%>%
+  filter(season!="2016")%>%
+  #reviewed old journal and the U/G barrell from 2019 as a mostly gray water barrel with some urine because our U barrel was fill
+  mutate(type = replace(type, type =="U/G", "Gray Water"))%>%
+  group_by(season, type)%>%
+  summarise(tot = sum(weight,na.rm = TRUE))%>%
+  full_join(ppl)%>%
+  #calculate average per day (apd)
+  mutate(apd = tot/ppldays)%>%
+  ungroup()%>%
+  mutate(type = as.factor(type))%>%
+  filter(type !="sleep kit"&type !="BFC retro")%>%
+  #separate propane and u/g barrels from "smaller" waste
+  mutate(category = ifelse(grepl("U-barrel|Gray Water|propane|U/G", type), "Big Waste", "Small Waste"))
+
+
+all_waste_sum%>%
+  #remove smaller items that aren't as common across seasons
+  filter(!grepl("cardboard|bubble wrap|scrap metal|sani", type))%>%
+  ggplot(aes(reorder(type, apd),apd, fill = as.factor(season)))+
+  geom_bar(stat="identity", position = position_dodge())+
+  #scales = free allows x and y axis to be unrelated to one another
+  facet_wrap(~category, scales = "free")+
+  #have to think about how to visualize this because ug and propane are much larger than other values
+  scale_y_continuous(name = "Retro per person per day (lbs)")+
+  #if type has a space in it, make it into two lines
+  scale_x_discrete(name = "Type Retro", labels = function(x) gsub('\\s','\n',x))+
+  #geom_text(label = signif(waste_sum$tot, digits =3), color = "black", hjust = ifelse(waste_sum$tot <=55, -0.2, 1.1), size = 3)+
+  scale_fill_brewer(palette = "Paired",name = "Season")+
+  labs(caption = "No \"Big\" Waste from 2016")+
+  EOS_theme+
+      theme(
+          strip.background = element_rect(fill = NA, size = 0.2))
+
+
+curr_waste<-all_waste%>%
+  filter(season==curr_seas)%>%
+  group_by(type)%>%
+  summarise(n = sum(number), tot = sum(weight, na.rm=TRUE))%>%
+  mutate(category = ifelse(grepl("U-barrel|Gray Water|propane|U/G", type), "Big Waste", "Small Waste"))
+
+last_waste<-all_waste%>%
+  filter(season==curr_seas-1)%>%
+  group_by(type)%>%
+  summarise(n = sum(number), tot = sum(weight, na.rm=TRUE))%>%
+  mutate(category = ifelse(grepl("U-barrel|Gray Water|propane|U/G", type), "Big Waste", "Small Waste"))
+
+  
+```
+
+This year we retroed `r {curr_waste$n[curr_waste$type=="propane"]}` empty propane tanks, `r {curr_waste$n[curr_waste$type=="Gray Water"]}` gray water drum, and `r {curr_waste$n[curr_waste$type=="U-barrel"]}` U-barrels. We sent `r {sum(curr_waste$tot[curr_waste$category=="Small Waste"])}` lbs of other retro back to McMurdo, including `r {curr_waste$n[curr_waste$type=="human waste"]}` poo buckets.
+
+
+Last year we retroed `r {last_waste$n[last_waste$type=="propane"]}` empty propane tanks, `r {last_waste$n[last_waste$type=="Gray Water"]}` gray water drum, and `r {last_waste$n[last_waste$type=="U-barrel"]}` U-barrels. We sent `r {sum(last_waste$tot[last_waste$category=="Small Waste"])}` lbs of other retro back to McMurdo, including `r {last_waste$n[last_waste$type=="human waste"]}` poo buckets.
