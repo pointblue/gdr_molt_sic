@@ -10,12 +10,12 @@
 #.libPaths('C:/R/libs') 
 
 ##Specify the directory where analyses are stored for this (depends on what network you are on)
-#analyses_dir<-"Z:/Informatics/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/"
-analyses_dir<-"Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/"
+analyses_dir<-"Z:/Informatics/S031/analyses/gdr_molt_SIC"
+# analyses_dir<-"Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/"
 
 ##Specify the GIS directory you are working from (depends on what network you are on)
-#GIS_dir<-"V:/Project/Terrestrial/adpe/"
-GIS_dir<-"C:/adpe/"
+GIS_dir<-"V:/Project/Terrestrial/adpe/"
+# GIS_dir<-"C:/adpe/"
 
 ##Load  any needed libraries####
 library(raster)
@@ -33,6 +33,16 @@ library(dplyr)
 #Note that this one uses the foraging dive locations for the larger region
 #comparison (vs. all locations
 
+molt_locs_tab <-data.table::fread("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/molt_locs500_2022-02-15.csv")
+
+# summarize molt dates of birds that are included in molt locs table
+molt_locs_tab%>%
+  filter(doy<86)%>%
+  group_by(season)%>%
+  summarise(min_doy = min(doy), max_doy = max(doy))
+
+  
+  
 ##Make data frame for holding results####
 ma_results_df<-
   data.frame(year=integer(),croz_cma_sic=double(),royd_cma_sic=double(), 
@@ -41,11 +51,11 @@ ma_results_df<-
 
 for(yy in c(2017:2019)) {
   myyear=as.character(yy)
-  #amsr_dir=paste0(GIS_dir,"nasa_winter_ecology/ice_concentration/raw/y",myyear,"/")
-  amsr_dir=paste0(GIS_dir,"sat_images/AMSR/y",myyear,"/")
+  amsr_dir=paste0(GIS_dir,"nasa_winter_ecology/ice_concentration/raw/y",myyear,"/")
+  # amsr_dir=paste0(GIS_dir,"sat_images/AMSR/y",myyear,"/")
   
   setwd(amsr_dir)
-
+#### need to check these dates ################################################
   if(yy==2017) {
     mind<-20 ##Minimum day: DOY51 February 20 - dates calculated by Annie; note no leap days in these 3 years
     maxd<-31 ##Max day: DOY 90; Mar 31
@@ -94,10 +104,10 @@ for(yy in c(2017:2019)) {
   ice_raster_file<-paste0("mean_",myyear,"_molt_dates.tif")
   
   #clip the mean raster to location(s) of interest####
-  #molt_locs_dir<-"Z:/Informatics/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/contours"
-  molt_locs_dir<-"Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/contours"
-  c_molt_ca_file<-paste0(molt_locs_dir,"/CROZ_",myyear,"_molt_locs_50_poly.shp")#Crozier core molt areas for this year (50% probability)
-  r_molt_ca_file<-paste0(molt_locs_dir,"/ROYD_",myyear,"_molt_locs_50_poly.shp")#Royds core molt area for this year
+  molt_locs_dir<-"Z:/Informatics/S031/analyses/gdr_molt_SIC/data/contours"
+  # molt_locs_dir<-"Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/contours"
+  c_molt_ca_file<-paste0(molt_locs_dir,"/CROZ_molt_locs_",myyear,"_filt_50_poly.shp")#Crozier core molt areas for this year (50% probability)
+  r_molt_ca_file<-paste0(molt_locs_dir,"/ROYD_molt_locs_",myyear,"_filt_50_poly.shp")#Royds core molt area for this year
   hr_poly_file<-paste0(molt_locs_dir,"/CROZ_ROYDS_all_fdive_locs_95_poly.shp")#Larger area for comparison
   #i.e., what are the ice conditions across the whole area that penguins used for foraging 2017-2019 compared
   #with where they were during molt?
