@@ -3,6 +3,10 @@
 
 # future improvements will add those to function?
 
+colony="CROZ"
+seasons=2016
+grid_size=50000
+
 plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,xlab,
                        ylab,legend.title,legend.position,rast_path=NULL,poly_path=NULL,scaled_rast=TRUE,title=""){
   # func=match.fun(fun)
@@ -57,15 +61,12 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
   }else{
     summ_SPixDF<-as.data.frame(as(summ_grid,"SpatialPixelsDataFrame"))
   }
-  # get contour lines and convert to sf
+  # get contour lines
   cont_50 <- rasterToContour(summ_grid_scl,levels=0.5)
   
   cont_95 <- rasterToContour(summ_grid_scl,levels=0.05)
-  # need to figure out how to make these contours as polygons
-  # they are currently spatial lines and don't always connect so converting to polygon not straightforwart
-  # consider using isopoly (from SpatialPosition package)
-  # could also use getvertices from adehabitatHR but then would need to do the whole home range estimation which may not make sense in this context
-  
+
+# convert spatial lines to polygons  
   if (!is.null(poly_path)){
   # first convert contours to polygons
   cont_50_polys=list()
@@ -73,59 +74,64 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
     cont_50_polys[[i]]<- Polygon(coords=cont_50@lines[[1]]@Lines[[i]]@coords)
     cont_50_polys[[i]]@hole = FALSE
    }
-  
-  # then conver to list
+
+  # then convert to list of polygons
   cont_50_poly_ls <- Polygons(cont_50_polys,"cont_50")
   # then convert to spatial Polygons
   cont_50_poly_sp <-SpatialPolygons(list(cont_50_poly_ls), proj4string = proj_ant)
-  # then conver to sf
-  cont_50_poly_sf <- st_as_sf(cont_50_poly_sp)
+
+  # clip to coastline
+  cont_50_poly_clip <- cont_50_poly_sp-ant_clip
   
+  # then convert to sf and remove holes
+  cont_50_poly_sf <- st_remove_holes(st_as_sf(cont_50_poly_clip))
   
-  # first convert contours to polygons
+  #convert 95% contours to polygons
   cont_95_polys=list()
   for(i in 1:length(cont_95@lines[[1]]@Lines)){
     cont_95_polys[[i]]<- Polygon(coords=cont_95@lines[[1]]@Lines[[i]]@coords)
     cont_95_polys[[i]]@hole = FALSE
   }
-  
-  # then conver to list
+
+  # # then conver to list
   cont_95_poly_ls <- Polygons(cont_95_polys,"cont_50")
   # then convert to spatial Polygons
   cont_95_poly_sp <-SpatialPolygons(list(cont_95_poly_ls), proj4string = proj_ant)
-  # then conver to sf
-  cont_95_poly_sf <- st_as_sf(cont_95_poly_sp)
+  # clip to coastline
+  cont_95_poly_clip <- cont_95_poly_sp-ant_clip
+  # then convert to sf and remove holes
+  cont_95_poly_sf <- st_remove_holes(st_as_sf(cont_95_poly_clip))
+  # plot(cont_95_poly_clip)
 
 
+  
     write_sf(cont_50_poly_sf,paste(poly_path,50,"poly.shp",sep="_"),driver="ESRI Shapefile")
     write_sf(cont_95_poly_sf,paste(poly_path,95,"poly.shp",sep="_"),driver="ESRI Shapefile")
   }else{
     message("no polygon path provided, polygon not saved")
   }
   
-  # convert polylines to simple features for plotting
-  cont_50 <- cont_50%>%
-    {. ->> contours_sp} %>%
-    st_as_sf %>%
-    {. ->> contours_sf}
-  
-  cont_95 <-cont_95  %>%
-    {. ->> contours_sp} %>%
-    st_as_sf %>%
-    {. ->> contours_sf}
+  # # convert polylines to simple features for plotting
+  # cont_50 <- cont_50%>%
+  #   {. ->> contours_sp} %>%
+  #   st_as_sf %>%
+  #   {. ->> contours_sf}
+  # 
+  # cont_95 <-cont_95  %>%
+  #   {. ->> contours_sp} %>%
+  #   st_as_sf %>%
+  #   {. ->> contours_sf}
 
   
-p <- ggplot()+
+
+ p<- ggplot()+
     geom_tile(data=summ_SPixDF,aes(x,y,fill=layer))+
     scale_fill_viridis(legend.title)+
-    # 2000m isobath
-    # 2000m isobath
+    # 1000m isobath
     geom_path(data=iso1000,aes(x = long, y = lat,group=group,col="1000m isobath"),show.legend = TRUE,size=0.75)+
-    # acc front
-    # geom_path(data=front,aes(x = long, y = lat,group=group, col = "ACC front"),show.legend = "line",size=0.8, lty=3)+
-        # add 50% and 95% contours
-    geom_sf(data=cont_50,size=1,aes(color="50%"),show.legend = "line")+
-    geom_sf(data=cont_95,size=1.2,aes(color = "95%"), show.legend = "line")+
+    # add 50% and 95% contours
+    geom_path(data=cont_50_poly_clip,size=1,aes(x=long,y=lat, group=group,col="50%"),show.legend = "line")+
+    geom_path(data=cont_95_poly_clip,size=1,aes(x=long,y=lat, group=group,col="95%"), show.legend = "line")+
    # mpa boundary
    geom_polygon(data=mpa_t,aes(x=long,y=lat, group=group,col="RSRMPA",linetype = "RSRMPA"),
                 show.legend = "line",fill="grey",alpha=0,size=0.8)+
@@ -143,8 +149,8 @@ p <- ggplot()+
     # set coord system and limits
     coord_sf(
       crs = proj_ant,
-      xlim = c(-1625000,   2575000),
-      ylim = c(825000, 4175000),
+      xlim = c(-1625000,   2075000),
+      ylim = c(825000, 3175000),
     )+
     theme_classic()+
     scale_color_manual("",values=c("50%"="green", "95%"="purple","RSRMPA" = "grey85","1000m isobath" = "grey50"),
@@ -163,6 +169,6 @@ p <- ggplot()+
     scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))+
     ggtitle(title)
   # c(seq(110,180,by=10),seq(-170,-100,by=10)))
-  # print(p)
+  print(p)
   return(p)
 }

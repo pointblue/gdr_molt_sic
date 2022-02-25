@@ -3,7 +3,7 @@
 
 # Check if have required packages installed and install if not
 list.of.packages <- c("dplyr","ggplot2","readr","gridExtra","viridis","MASS","data.table","lubridate","fasttime",
-                      "wesanderson","sp","raster","rgdal","sf","ggspatial")
+                      "wesanderson","sp","raster","rgdal","sf","ggspatial","nngeo")
 # compare to existing packages
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install missing packages
@@ -12,7 +12,7 @@ if(length(new.packages)>0) {install.packages(new.packages)}
 lapply(list.of.packages, library, character.only = TRUE)
 
 # Set working directory
-setwd("Z:/Informatics/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data")
+setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC")
 
 
 # read in MAP layers ####
@@ -21,36 +21,32 @@ proj <- CRS("+proj=longlat +ellps=WGS84 +lon_0=-169 +lon_wrap")
 # proj <- CRS("+proj=laea +lat_0=45.5 +lon_0=-114.125 +no_defs +lon_wrap")
 # proj <-CRS("+proj=stere +lat_0=90 +lat_ts=70 +lon_0=-45 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs" )
 proj_ant <-CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=180 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +datum=WGS84 +units=m +no_defs")
-MPA <- readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp")
-# reproject MPA
-mpa_t <- spTransform(MPA, proj_ant)
+mpa_t <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
 
 # read in and project antarctica coastline
-ant <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/ADDcstpoly30.shp"), proj_ant)
+ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
 # read in and project grid lines for plotting
 polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
 # read in and project 2000m isobath
-iso2000 <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/2000_m_isobath.shp"),proj_ant)
-# t<-readOGR("GIS/full_2000_m_isobath.shp")
-# read in and project ACC boundary
-front <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/acc_fronts.shp"),proj_ant)
-# read in 50% contour for molt locations
-c_2017_mlocs_50 <- readOGR("contours/CROZ_2017_molt_locs_50_poly.shp")
-c_2018_mlocs_50 <- readOGR("contours/CROZ_2018_molt_locs_50_poly.shp")
-c_2019_mlocs_50 <- readOGR("contours/CROZ_2019_molt_locs_50_poly.shp")
+iso1000 <- iso1000 <- spTransform(readOGR("GIS/1000_m_isobath.shp"),proj_ant)
 
-r_2017_mlocs_50 <-readOGR("contours/ROYD_2017_molt_locs_50_poly.shp")
-r_2018_mlocs_50 <-readOGR("contours/ROYD_2018_molt_locs_50_poly.shp")
-r_2019_mlocs_50 <-readOGR("contours/ROYD_2019_molt_locs_50_poly.shp")
+# read in 50% contour for molt locations
+c_2017_mlocs_50 <- readOGR("data/contours/CROZ_molt_locs_2017_filt_50_poly.shp")
+c_2018_mlocs_50 <- readOGR("data/contours/CROZ_molt_locs_2018_filt_50_poly.shp")
+c_2019_mlocs_50 <- readOGR("data/contours/CROZ_molt_locs_2019_filt_50_poly.shp")
+
+r_2017_mlocs_50 <-readOGR("data/contours/ROYD_molt_locs_2017_filt_50_poly.shp")
+r_2018_mlocs_50 <-readOGR("data/contours/ROYD_molt_locs_2018_filt_50_poly.shp")
+r_2019_mlocs_50 <-readOGR("data/contours/ROYD_molt_locs_2019_filt_50_poly.shp")
 
 # Read in 95% contour for molt locations
-c_2017_mlocs_95 <- readOGR("contours/CROZ_2017_molt_locs_95.shp")
-c_2018_mlocs_95 <- readOGR("contours/CROZ_2018_molt_locs_95.shp")
-c_2019_mlocs_95 <- readOGR("contours/CROZ_2019_molt_locs_95.shp")
+c_2017_mlocs_95 <- readOGR("data/contours/CROZ_molt_locs_2017_filt_95_poly.shp")
+c_2018_mlocs_95 <- readOGR("data/contours/CROZ_molt_locs_2018_filt_95_poly.shp")
+c_2019_mlocs_95 <- readOGR("data/contours/CROZ_molt_locs_2019_filt_95_poly.shp")
 
-r_2017_mlocs_95 <-readOGR("contours/ROYD_2017_molt_locs_95.shp")
-r_2018_mlocs_95 <-readOGR("contours/ROYD_2018_molt_locs_95.shp")
-r_2019_mlocs_95 <-readOGR("contours/ROYD_2019_molt_locs_95.shp")
+r_2017_mlocs_95 <-readOGR("data/contours/ROYD_molt_locs_2017_filt_95_poly.shp")
+r_2018_mlocs_95 <-readOGR("data/contours/ROYD_molt_locs_2018_filt_95_poly.shp")
+r_2019_mlocs_95 <-readOGR("data/contours/ROYD_molt_locs_2019_filt_95_poly.shp")
 
 
 

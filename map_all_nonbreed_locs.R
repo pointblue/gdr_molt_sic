@@ -13,7 +13,7 @@ if(length(new.packages)>0) {install.packages(new.packages)}
 # load required packages
 lapply(list.of.packages, library, character.only = TRUE)
 
-setwd("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date")
+setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC/")
 
 
 # read in and prepare location data
@@ -27,6 +27,7 @@ setwd("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date")
 
 # read in file prepared by above lines
 locs500 <-fread("data/locs500_filt_format.csv")
+
 
 # read in GDR deploy file to filter out birds with incomplete tracks
 gdr_depl <- read_csv("data/croz_royds_gdr_depl_all_v2021-08-27.csv")
@@ -45,20 +46,24 @@ locs500_depl%>%
   dplyr::select(bird_fn,season)%>%
   distinct() # 185 deployments with complete data
 
+nrow(locs500_depl)/500
+# 62715 total locations
+
+
 
 # due to memory limitations on laptop in the field, splitting data into years and writing year files first
-
-locs2017 <- locs500_depl%>%
-  filter(year==2017)
-fwrite(locs2017, "data/locs500_filt_2017.csv")
-
-locs2018 <- locs500_depl%>%
-  filter(year==2018)
-fwrite(locs2018, "data/locs500_filt_2018.csv")
-
-locs2019 <- locs500_depl%>%
-  filter(year==2019)
-fwrite(locs2019, "data/locs500_filt_2019.csv")
+# 
+# locs2017 <- locs500_depl%>%
+#   filter(year==2017)
+# fwrite(locs2017, "data/locs500_filt_2017.csv")
+# 
+# locs2018 <- locs500_depl%>%
+#   filter(year==2018)
+# fwrite(locs2018, "data/locs500_filt_2018.csv")
+# 
+# locs2019 <- locs500_depl%>%
+#   filter(year==2019)
+# fwrite(locs2019, "data/locs500_filt_2019.csv")
 
 # clear environment
 rm(list = ls())
@@ -103,7 +108,7 @@ MPA <- readOGR("../nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp")
 mpa_t <- spTransform(MPA, proj_ant)
 # read in and project antarctica coastline
 # ant <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/ADDcstpoly30.shp"), proj_ant)
-ant <- spTransform(readOGR("../nonbreeding_foraging/GIS/ADDcstpoly30.shp"), proj_ant)
+ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
 # read in and project grid lines for plotting
 # polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
 polar_grid <-spTransform(readOGR("../nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
@@ -122,7 +127,9 @@ source("code/molt_locs_summary_function.R")
 cr_all <- plot_mlocs(data=locsall,colony=c("CROZ","ROYD"),seasons=c(2016:2018),grid_size=50000,
                      legend.title = "Location\nDensity",xlab="Longitude", ylab="Latitude",
                      legend.position="none",
-                     title="")
+                     title="",
+                     rast_path = "data/summary_rasters/nonbreed_locs_filt_17_19.tiff",
+                     poly_path = "data/contours/nonbreed_locs_filt_17_19")
 print(cr_all)
 
 

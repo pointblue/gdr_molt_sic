@@ -1,4 +1,4 @@
-# Map of molt location
+# Map of molt locations
 
 
 # Check if have required packages installed and install if not

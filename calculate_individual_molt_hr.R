@@ -1,4 +1,4 @@
-# Calculate fraction of individuals from each colony that molt in wester or eastern sectors
+# Calculate fraction of individuals from each colony that molt in western or eastern sectors ####
 
 # Check if have required packages installed and install if not
 list.of.packages <- c("tidyverse","gridExtra","viridis","MASS","data.table","lubridate","fasttime",

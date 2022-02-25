@@ -9,7 +9,7 @@ library(sqldf)
 library(ggplot2)
 
 #set the working directory####
-setwd("Y:/S031/S0312122/croz2122/bandsearch")
+setwd("Z:/Informatics/S031/S0312122/croz2122/bandsearch")
 
 #load functions specific to bandsearch tasks####
 source("bandsearch_functions.R")
@@ -22,7 +22,7 @@ bandinv <- read.dbf("../band/band_inv.dbf")
 bandinv <- bandinv[,1:7]
 allresight <-read.dbf("allresight.dbf")
 allresight <- allresight[,1:26]
-gdr_birds_df<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/croz_royds_gdr_depl_all_v2021-08-27.csv")
+gdr_birds_df<-read.csv("Z:/Informatics/S031/analyses/GDR/data/croz_royds_gdr_depl_all_v2021-08-27.csv")
 
 #0000000000000000000000000000000000000000000000000000000000000000000000000
 #number of birds seen in a given year that were seen in the prior year####
@@ -56,6 +56,10 @@ slct<-paste0("select * from allrs where bandnumb not in
       )")
 
 allrs<-sqldf(slct)
+# rm_bands <-
+# allrs_filt <- allrs%>%
+#   filter(
+    
 #this removed 528 individuals; total here is 150309
 #sort(unique(allrs$BANDSEEN))
 
@@ -122,7 +126,7 @@ resight_summary_df$prop_br_resight<-as.numeric(sprintf(resight_summary_df$prop_b
 #now join with the sea ice concentration data for the molt area for the same time period:
 #sic_df<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/molt_area_hr_amsr_sic_summary_2003-2021.csv")
 #sic_df<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/molt_area_hr_sic_ssmi_amsr_1980-2021.csv")
-sic_df<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/specific_colony_molt_area_hr_sic_summary_1980-2021.csv")
+sic_df<-read.csv("Z:/Informatics/S031/analyses/gdr_molt_sic/data/specific_colony_molt_area_hr_sic_summary_1980-2021.csv")
 
 sic_rs_df<-left_join(resight_summary_df,sic_df,by=c("season"="year"))
 
@@ -130,6 +134,7 @@ sic_rs_df_g2000<-filter(sic_rs_df,season>1999,colony=="CROZ") #data before 2000 
 
 #plot results:
 #ggplot(sic_rs_df, aes(x=total_hr_molt_sic, y=prop_br_resight)) +
+my.formula <- y ~ x
 ggplot(sic_rs_df_g2000, aes(x=croz_hr_molt_sic, y=prop_resight)) +
   geom_point() +
   geom_smooth(method="lm") +
@@ -138,8 +143,11 @@ ggplot(sic_rs_df_g2000, aes(x=croz_hr_molt_sic, y=prop_resight)) +
   ylab("Prop ly banded birds seen ty") +
   xlab("Sea Ice Concentration in the molt HR area") +
   theme_classic() +
-  theme(axis.title=element_text(size=16),axis.text=element_text(size=14)) +
-  ylim(0.5,0.77)
+  theme(axis.title=element_text(size=16),axis.text=element_text(size=14))+
+  ggpmisc::stat_poly_eq(formula = my.formula, 
+                       aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+                       parse = TRUE)
+
 
 #model this fit; note options available for SIC data between SSMI and AMSR (the latter not available before 2002 and also not available for 2012)
 #rs_sic_fit<-lm(data=sic_rs_df_g2000,prop_resight~ssmi_hr_molt_sic_num) #SSMI
@@ -149,7 +157,7 @@ summary(rs_sic_fit)
 
 #now just breeders
 #ggplot(sic_rs_df, aes(x=total_hr_molt_sic, y=prop_br_resight)) +
-ggplot(sic_rs_df_g2000, aes(x=ssmi_hr_molt_sic_num, y=prop_br_resight)) +
+ggplot(sic_rs_df_g2000, aes(x=croz_hr_molt_sic, y=prop_br_resight)) +
   geom_point() +
   geom_smooth(method="lm") +
   #scale_y_continuous(breaks=seq(0,60,by=10)) +
@@ -157,13 +165,12 @@ ggplot(sic_rs_df_g2000, aes(x=ssmi_hr_molt_sic_num, y=prop_br_resight)) +
   ylab("Prop ly breeders seen ty") +
   xlab("Sea Ice Concentration in the molt HR area") +
   theme_classic() +
-  theme(axis.title=element_text(size=16),axis.text=element_text(size=14)) +
-  ylim(0.55,0.85)
+  theme(axis.title=element_text(size=16),axis.text=element_text(size=14))
 
 #model the fit for breeders only:
 #rs_sic_fit<-lm(data=sic_rs_df,prop_br_resight~total_hr_molt_sic)
 sic_rs_df_g2000<-filter(sic_rs_df,season>=2003) #Note lack of breeding status info before 2003
-rs_sic_fit<-lm(data=sic_rs_df_g2000,prop_br_resight~ssmi_hr_molt_sic_num)
+rs_sic_fit<-lm(data=sic_rs_df_g2000,prop_br_resight~croz_hr_molt_sic+colony)
 summary(rs_sic_fit)
 
 
