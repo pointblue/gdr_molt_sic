@@ -15,6 +15,9 @@ setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC/")
 
 
 
+# define projection
+proj_ant <-CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=180 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +datum=WGS84 +units=m +no_defs")
+
 #  Read in and prepare data ####
 old_polygon<-spTransform(readOGR("data/contours/WinterArea_2003_2005/WinterPolygon2003-2005.shp"),proj_ant)
 

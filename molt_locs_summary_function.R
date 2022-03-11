@@ -3,19 +3,32 @@
 
 # future improvements will add those to function?
 
-colony="CROZ"
-seasons=2016
-grid_size=50000
+# colony="CROZ"
+# seasons=2016
+# grid_size=50000
 
 plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,xlab,
-                       ylab,legend.title,legend.position,rast_path=NULL,poly_path=NULL,scaled_rast=TRUE,title=""){
+                       ylab,legend.title,legend.position,rast_path=NULL,poly_path=NULL,scaled_rast=TRUE,title="",plot=TRUE){
+  require(tidyverse)
+  require(nngeo)
+  require(viridis)
+  require(data.table)
+  require(sp)
+  require(raster)
+  require(rgdal)
+  require(sf)
+  require(ggspatial)
+  require(nngeo)
+  
   # func=match.fun(fun)
   # filter data to subset desired
   data_sub <- data%>%
     filter(br_col%in%colony,
            season%in%seasons,
            month%in%months)
-
+#   if(!br_col%in%){
+#     message("Warning: Breeding colony incorrect, only CROZ and ROYD allowed")
+# }
   
   # Create 50 km bins so can summarize data by bin
   
@@ -29,7 +42,7 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
   data_sub$x_bin <-mround(data_sub$x,grid_size)
   data_sub$y_bin <- mround(data_sub$y,grid_size)
   
-  # summarize total foraging dives per grid ####
+  # summarize total locations per grid ####
   data_summ <-data_sub%>%
     group_by(x_bin,y_bin)%>%
     summarise(n_locs=n(),.groups="drop")%>%
@@ -74,17 +87,18 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
     cont_50_polys[[i]]<- Polygon(coords=cont_50@lines[[1]]@Lines[[i]]@coords)
     cont_50_polys[[i]]@hole = FALSE
    }
-
   # then convert to list of polygons
   cont_50_poly_ls <- Polygons(cont_50_polys,"cont_50")
   # then convert to spatial Polygons
   cont_50_poly_sp <-SpatialPolygons(list(cont_50_poly_ls), proj4string = proj_ant)
-
   # clip to coastline
   cont_50_poly_clip <- cont_50_poly_sp-ant_clip
-  
   # then convert to sf and remove holes
   cont_50_poly_sf <- st_remove_holes(st_as_sf(cont_50_poly_clip))
+  # rename field
+  # names(cont_50_poly_sf)[1] <- "FID"
+  # set crs
+  cont_50_poly_sf<-st_set_crs(cont_50_poly_sf,proj_ant)
   
   #convert 95% contours to polygons
   cont_95_polys=list()
@@ -92,21 +106,23 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
     cont_95_polys[[i]]<- Polygon(coords=cont_95@lines[[1]]@Lines[[i]]@coords)
     cont_95_polys[[i]]@hole = FALSE
   }
-
   # # then conver to list
-  cont_95_poly_ls <- Polygons(cont_95_polys,"cont_50")
+  cont_95_poly_ls <- Polygons(cont_95_polys,"cont_95")
   # then convert to spatial Polygons
   cont_95_poly_sp <-SpatialPolygons(list(cont_95_poly_ls), proj4string = proj_ant)
   # clip to coastline
   cont_95_poly_clip <- cont_95_poly_sp-ant_clip
   # then convert to sf and remove holes
   cont_95_poly_sf <- st_remove_holes(st_as_sf(cont_95_poly_clip))
-  # plot(cont_95_poly_clip)
-
-
+  # names(cont_95_poly_sf)[1] <- "FID"
+  # set projection (sometimes gets dropped in previous step)
+  cont_95_poly_sf<-st_set_crs(cont_95_poly_sf,proj_ant)
   
-    write_sf(cont_50_poly_sf,paste(poly_path,50,"poly.shp",sep="_"),driver="ESRI Shapefile")
-    write_sf(cont_95_poly_sf,paste(poly_path,95,"poly.shp",sep="_"),driver="ESRI Shapefile")
+
+  #save contours as shapefiles
+  write_sf(cont_50_poly_sf,paste(poly_path,50,"poly.shp",sep="_"),driver="ESRI Shapefile")
+  write_sf(cont_95_poly_sf,paste(poly_path,95,"poly.shp",sep="_"),driver="ESRI Shapefile")
+  
   }else{
     message("no polygon path provided, polygon not saved")
   }
@@ -123,8 +139,8 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
   #   {. ->> contours_sf}
 
   
-
- p<- ggplot()+
+if (plot){
+  p<- ggplot()+
     geom_tile(data=summ_SPixDF,aes(x,y,fill=layer))+
     scale_fill_viridis(legend.title)+
     # 1000m isobath
@@ -169,6 +185,6 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
     scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))+
     ggtitle(title)
   # c(seq(110,180,by=10),seq(-170,-100,by=10)))
-  print(p)
   return(p)
+}
 }
