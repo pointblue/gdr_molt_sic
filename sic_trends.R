@@ -12,11 +12,6 @@ sic <- read_csv("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/sic_summary_ssmi
 
 # Define theme ####
 
-# # # Color for Crozier
-col1 = "#006C84"
-col2 = "#B2DBD5" # arctic
-col3 = "#5EA8A7" # lagoon
-
 # color palette
 col.p <- c("#006C84", "#5EA8A7", "#B2DBD5", "white")
 # turquoise to orange
@@ -27,6 +22,10 @@ col.to <- c("#006C84", "#B2DBD5", "#e6ceb5", "#ff8324", "#f73c2f")
 # 
 # pb_col1 <- "#005BAA"
 # pb_col2 <- "#4495D1"
+
+col1 <- "#FDE725FF" #yellow
+col2 <- "#9856c8" # light purple
+col3 <- "#21908CFF" # turquoise
 
 
 
@@ -71,6 +70,51 @@ p <- sic%>%
   xlab("Year")
 
 ggplot_build(p)
+
+p_mlocs <- p<- ggplot()+
+  geom_tile(data=summ_SPixDF,aes(x,y,fill=layer))+
+  scale_fill_viridis(legend.title)+
+  # 1000m isobath
+  geom_path(data=iso1000,aes(x = long, y = lat,group=group,col="1000m isobath"),show.legend = TRUE,size=0.75)+
+  # add 50% and 95% contours
+  geom_path(data=cont_50_poly_clip,size=1,aes(x=long,y=lat, group=group,col="50%"),show.legend = "line")+
+  geom_path(data=cont_95_poly_clip,size=1,aes(x=long,y=lat, group=group,col="95%"), show.legend = "line")+
+  # mpa boundary
+  geom_polygon(data=mpa_t,aes(x=long,y=lat, group=group,col="RSRMPA",linetype = "RSRMPA"),
+               show.legend = "line",fill="grey",alpha=0,size=0.8)+
+  
+  # antarctica coastline
+  geom_polygon(
+    data = ant,
+    aes(x = long, y = lat, group = group),
+    fill = "grey90",
+    # alpha = 0.3,
+    col = "grey50"
+  ) +
+  # lat lon grid
+  geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
+  # set coord system and limits
+  coord_sf(
+    crs = proj_ant,
+    xlim = c(-1625000,   2075000),
+    ylim = c(825000, 3175000),
+  )+
+  theme_classic()+
+  scale_color_manual("",values=c("50%"="green", "95%"="purple","RSRMPA" = "grey85","1000m isobath" = "grey50"),
+                     breaks = c("50%", "95%","RSRMPA","1000m isobath"))+
+  # scale_linetype_manual(values =c("50%"=1, "95%"=1,"RSRMPA" = 1,"2000m isobath" = 1,"ACC front" = 3))+
+  guides(color = guide_legend(override.aes = list(linetype = c(1,1,1,1))))+
+  scale_linetype(guide = FALSE)+
+  theme(title = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 8),
+        axis.text.x = element_text(angle = 90),
+        legend.title = element_text(size = 10))+
+  xlab(xlab) +
+  ylab(ylab) +
+  # scale_fill_manual(lims=c(0.0001,1))+
+  scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))+
+  ggtitle(title)
 
 
 #-------------------------------------------------------------------------------------#

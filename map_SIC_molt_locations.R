@@ -3,7 +3,7 @@
 
 # Check if have required packages installed and install if not
 list.of.packages <- c("dplyr","ggplot2","readr","gridExtra","viridis","MASS","data.table","lubridate","fasttime",
-                      "wesanderson","sp","raster","rgdal","sf","ggspatial","nngeo", "ggpubr")
+                      "wesanderson","sp","raster","rgdal","sf","ggspatial","nngeo", "ggpubr", "patchwork")
 # compare to existing packages
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # install missing packages
@@ -130,7 +130,7 @@ ew_2017<-
   scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
                      breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide=FALSE)+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -181,7 +181,7 @@ ew_2018<-
   scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
                      breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide=FALSE)+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -232,7 +232,7 @@ ew_2019<-
   scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
                      breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide=FALSE)+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -242,7 +242,7 @@ ew_2019<-
         legend.position = "")+
   labs(x="Longitude",y="Latitude") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
-
+print(ew_2019)
 
 # 2003 ####
 ew_2003<-
@@ -282,7 +282,7 @@ ew_2003<-
   scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
                      breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide=FALSE)+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -332,7 +332,7 @@ ew_2006<-
   scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
                      breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide=FALSE)+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -345,62 +345,29 @@ ew_2006<-
 
 
 
-leg <- ggpubr::get_legend(ew_2019)
+leg <- ggpubr::get_legend(ew_2006) # have to delete legend.position="" and run first
 
 
 
 
 # print all 3 panels
-ggarrange(ew_2017,ew_2018,ew_2019,leg, ncol=2,nrow=2)
+ggarrange(ew_2003, ew_2006, ew_2017,ew_2018,ew_2019,common.legend = TRUE, ncol=2,nrow=3)
 
-
-
-
-# cr_2019 <- ggplot()+
-#   geom_tile(data=sic_2019_t,aes(x,y,fill=mean_2019_molt_dates))+
-#   # scale_fill_grey("SIC")
-#   scale_fill_gradient(
-#     low = "#000000",
-#     high = "#FFFFFF",
-#     "SIC (%)")+
-#   # 2000m isobath
-#   # geom_path(data=iso2000,aes(x = long, y = lat,group=group,col="2000m isobath",linetype="2000m isobath"),size=0.75)+
-#   # mpa boundary
-#   geom_path(data=mpa_t,aes(x=long,y=lat, group=group,col="RSRMPA",linetype="RSRMPA"),size=0.75)+
-#   # add 50% contours
-#   geom_path(data=c_2019_mlocs_50,aes(x=long,y=lat, group=group,col="Crozier 50%",linetype="Crozier 50%"),size=1.2)+
-#   geom_path(data=r_2019_mlocs_50,aes(x=long,y=lat, group=group,col="Royds 50%", linetype="Royds 50%"),size=1.2)+
-#   # add 95% contours
-#   geom_path(data=c_2019_mlocs_95,aes(x=long,y=lat, group=group,col="Crozier 95%",linetype="Crozier 95%"),size=.5)+
-#   geom_path(data=r_2019_mlocs_95,aes(x=long,y=lat, group=group,col="Royds 95%", linetype="Royds 95%"),size=.5)+
-#   # antarctica coastline
-#   geom_polygon(
-#     data = ant,
-#     aes(x = long, y = lat, group = group),
-#     fill = "grey90",
-#     # alpha = 0.3,
-#     col = "grey50")+
-#   # lat lon grid
-#   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
-#   geom_label(aes(x=-1325000,y=1175000),label="2019")+
-#   # set coord system and limits
-#   coord_sf(
-#     crs = proj_ant,
-#     xlim = c(-1425000,   1600000),
-#     ylim = c(1105000, 3175000))+
-#   theme_classic()+
-#   scale_color_manual("",values=c("gold", "gold","dodgerblue","dodgerblue","grey85","grey50"),
-#                      breaks = c("Crozier 50%","Crozier 95%", "Royds 50%","Royds 95%","RSRMPA"))+
-#   scale_linetype_manual(values=c(1,1,1,1,1),
-#                         breaks = c("Crozier 50%", "Crozier 95%", "Royds 50%","Royds 95%","RSRMPA"),guide=FALSE)+
-#   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
-#   theme(title = element_text(size = 10),
-#         axis.title = element_text(size = 14),
-#         axis.text = element_text(size = 8),
-#         axis.text.x = element_text(angle = 90),
-#         legend.title = element_text(size = 10))+
-#   labs(x="Longitude",y="Latitude", title = "Crozier core area SIC = 12.3%\nRoyds core area SIC = 0.1%\nRoss Sea SIC = 6.6%") +
-#   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
+ew_2003 + ew_2006 + leg + ew_2017 + ew_2018 + ew_2019+
+  plot_layout(widths = 1)+
+  plot_annotation(tag_levels = 'A') & 
+  theme(plot.tag = element_text(size = 10))
+  
+#   (ew_2003/ew_2017)|((ew_2006+plot_layout(guides = "keep")+theme(plot.margin = unit(c(0,0,0,-10),"pt")))/ew_2018)|
+#                         (ew_2019 + theme(plot.margin = unit(c(0,0,200,0), "pt")))+
+#        # (ew_2006 + theme(plot.margin = unit(c(0,0,0,30), "pt")))+
+#         # (plot_spacer()))/
+#         # (ew_2017 + ew_2018 + ew_2019) +
+#   plot_layout(guides = "collect")
 # 
-# print(cr_2019)
-
+# print(p)
+# 
+# grid.arrange(arrangeGrob(ew_2003,
+#                          ew_2006,leg,
+#                          nrow=1),
+#              ew_2017,ew_2018,ew_2019, nrow=1)
