@@ -63,6 +63,8 @@ west50 <- spTransform(readOGR(paste0(molt_locs_dir,"/east_west/west_molt_locs_al
 west95 <- spTransform(readOGR(paste0(molt_locs_dir,"/east_west/west_molt_locs_allyr_filt_95_poly.shp")), proj_ant)
 
 
+# combined polygon
+comb_poly <- spTransform(readOGR("data/contours/WinterPolygon2003-05_2017-19.shp"),proj_ant)
 
 
 
@@ -111,6 +113,8 @@ ew_2017<-
   # add 95% contours
   geom_path(data=east95_2017,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95_2017,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
+  # combined HR
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -121,17 +125,18 @@ ew_2017<-
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
   geom_label(aes(x=-1325000,y=1175000),label="2017")+
+  geom_text(aes(x=-1325000,y=3005000),label="C",color="white",size=6)+
   # set coord system and limits
   coord_sf(
     crs = proj_ant,
     xlim = c(-1425000,   1600000),
     ylim = c(1105000, 3175000))+
   theme_classic()+
-  scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
-  scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
-  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
+  scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+  scale_linetype_manual(values=c(1,1,1,1,1,1),
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+  # guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
@@ -162,6 +167,8 @@ ew_2018<-
   # add 95% contours
   geom_path(data=east95_2018,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95_2018,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
+  # combined HR
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -172,17 +179,18 @@ ew_2018<-
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
   geom_label(aes(x=-1325000,y=1175000),label="2018")+
+  geom_text(aes(x=-1325000,y=3005000),label="D",color="white",size=6)+
   # set coord system and limits
   coord_sf(
     crs = proj_ant,
     xlim = c(-1425000,   1600000),
     ylim = c(1105000, 3175000))+
   theme_classic()+
-  scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
-  scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
-  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
+  scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+  scale_linetype_manual(values=c(1,1,1,1,1,1),
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+  # guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
@@ -192,7 +200,7 @@ ew_2018<-
   labs(x="Longitude",y="Latitude") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
 
-print(ew_2018)
+# print(ew_2018)
 
 # 2019 ####
 ew_2019<-
@@ -213,6 +221,8 @@ ew_2019<-
   # add 95% contours
   geom_path(data=east95_2019,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95_2019,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
+  # combined HR
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -222,6 +232,7 @@ ew_2019<-
     col = "grey50")+
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
+  geom_text(aes(x=-1325000,y=3005000),label="E",color="white",size=6)+
   geom_label(aes(x=-1325000,y=1175000),label="2019")+
   # set coord system and limits
   coord_sf(
@@ -229,20 +240,20 @@ ew_2019<-
     xlim = c(-1425000,   1600000),
     ylim = c(1105000, 3175000))+
   theme_classic()+
-  scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
-  scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
-  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
+  scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+  scale_linetype_manual(values=c(1,1,1,1,1,1),
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
         axis.text.x = element_text(angle = 90),
         legend.title = element_text(size = 10),
-        legend.position = "")+
+        legend.position="")+
   labs(x="Longitude",y="Latitude") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
-print(ew_2019)
+# print(ew_2019)
 
 # 2003 ####
 ew_2003<-
@@ -263,6 +274,8 @@ ew_2003<-
   # add 95% contours
   geom_path(data=east95,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
+  # combined HR
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -272,6 +285,7 @@ ew_2003<-
     col = "grey50")+
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
+  geom_text(aes(x=-1325000,y=3005000),label="A",color="white",size=6)+
   geom_label(aes(x=-1325000,y=1175000),label="2003")+
   # set coord system and limits
   coord_sf(
@@ -279,11 +293,11 @@ ew_2003<-
     xlim = c(-1425000,   1600000),
     ylim = c(1105000, 3175000))+
   theme_classic()+
-  scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
-  scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
-  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
+  scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+  scale_linetype_manual(values=c(1,1,1,1,1,1),
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+  # guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
@@ -293,7 +307,7 @@ ew_2003<-
   labs(x="Longitude",y="Latitude") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
 
-
+# print(ew_2003)
 # 2006 ####
 ew_2006<-
   ggplot()+
@@ -313,6 +327,8 @@ ew_2006<-
   # add 95% contours
   geom_path(data=east95,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
+  # combined HR
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -322,6 +338,7 @@ ew_2006<-
     col = "grey50")+
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
+  geom_text(aes(x=-1325000,y=3005000),label="B",color="white",size=6)+
   geom_label(aes(x=-1325000,y=1175000),label="2006")+
   # set coord system and limits
   coord_sf(
@@ -329,11 +346,11 @@ ew_2006<-
     xlim = c(-1425000,   1600000),
     ylim = c(1105000, 3175000))+
   theme_classic()+
-  scale_color_manual(name="", values=c(col1, col1,col2,col2,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"))+
-  scale_linetype_manual(values=c(1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%","RSRMPA"),guide="none")+
-  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1),lwd=c(2,0.5,2,0.5,1.2))))+
+  scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+  scale_linetype_manual(values=c(1,1,1,1,1,1),
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+  guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
@@ -342,7 +359,7 @@ ew_2006<-
         legend.position = "")+
   labs(x="Longitude",y="Latitude") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
-
+# print(ew_2006)
 
 
 leg <- ggpubr::get_legend(ew_2006) # have to delete legend.position="" and run first
@@ -351,23 +368,10 @@ leg <- ggpubr::get_legend(ew_2006) # have to delete legend.position="" and run f
 
 
 # print all 3 panels
-ggarrange(ew_2003, ew_2006, ew_2017,ew_2018,ew_2019,common.legend = TRUE, ncol=2,nrow=3)
+# ggarrange(ew_2003, ew_2006, ew_2017,ew_2018,ew_2019,common.legend = TRUE, ncol=2,nrow=3)
+# using patchwork package for multi-panel layout
+ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
+  plot_layout(widths = 1,nrow = 3)
 
-ew_2003 + ew_2006 + leg + ew_2017 + ew_2018 + ew_2019+
-  plot_layout(widths = 1)+
-  plot_annotation(tag_levels = 'A') & 
-  theme(plot.tag = element_text(size = 10))
-  
-#   (ew_2003/ew_2017)|((ew_2006+plot_layout(guides = "keep")+theme(plot.margin = unit(c(0,0,0,-10),"pt")))/ew_2018)|
-#                         (ew_2019 + theme(plot.margin = unit(c(0,0,200,0), "pt")))+
-#        # (ew_2006 + theme(plot.margin = unit(c(0,0,0,30), "pt")))+
-#         # (plot_spacer()))/
-#         # (ew_2017 + ew_2018 + ew_2019) +
-#   plot_layout(guides = "collect")
-# 
-# print(p)
-# 
-# grid.arrange(arrangeGrob(ew_2003,
-#                          ew_2006,leg,
-#                          nrow=1),
-#              ew_2017,ew_2018,ew_2019, nrow=1)
+
+
