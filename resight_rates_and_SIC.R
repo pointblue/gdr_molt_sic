@@ -4,9 +4,9 @@
 
 #get the packages you need####
 library(foreign)
-library(dplyr)
+library(tidyverse)
 library(sqldf)
-library(ggplot2)
+
 
 #set the working directory####
 setwd("Z:/Informatics/S031/S0312122/croz2122/bandsearch")
@@ -126,34 +126,167 @@ resight_summary_df$prop_br_resight<-as.numeric(sprintf(resight_summary_df$prop_b
 #now join with the sea ice concentration data for the molt area for the same time period:
 #sic_df<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/molt_area_hr_amsr_sic_summary_2003-2021.csv")
 #sic_df<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/molt_area_hr_sic_ssmi_amsr_1980-2021.csv")
-sic_df<-read.csv("Z:/Informatics/S031/analyses/gdr_molt_sic/data/specific_colony_molt_area_hr_sic_summary_1980-2021.csv")
+sic_df<-read.csv("Z:/Informatics/S031/analyses/gdr_molt_sic/data/sic_summary_ssmi_1980-2021.csv")
 
 sic_rs_df<-left_join(resight_summary_df,sic_df,by=c("season"="year"))
 
-sic_rs_df_g2000<-filter(sic_rs_df,season>1999,colony=="CROZ") #data before 2000 not exactly plentiful; Also note lack of breeding status info before 2003
+sic_rs_df_g2000<-filter(sic_rs_df,season>1999) #data before 2000 not exactly plentiful; Also note lack of breeding status info before 2003
 
 #plot results:
 #ggplot(sic_rs_df, aes(x=total_hr_molt_sic, y=prop_br_resight)) +
 my.formula <- y ~ x
-ggplot(sic_rs_df_g2000, aes(x=croz_hr_molt_sic, y=prop_resight)) +
+
+# Set up plot formatting ####
+
+# Define theme ####
+col1 <- "#FDE725FF" #yellow
+col2 <- "#9856c8" # light purple
+col3 <- "#21908CFF" # turquoise
+col4 <- "dodgerblue2"
+col5 <- "gold2"
+
+cols <- c("CROZ"= col5,"ROYD"= col4)
+
+# custom theme
+peng_theme <- function() {
+  theme_classic() %+replace%
+    theme(
+      axis.title.y = element_text(
+        size = 12,
+        margin = margin(r = 15),
+        angle = 90
+      ),
+      axis.title.x = element_text(size = 12, margin = margin(
+        t = 15,
+        r = 0,
+        b = 0,
+        l = 0
+      )),
+      axis.text = element_text(size = 10),
+      legend.text = element_text(size = 12),
+      legend.title = element_text(size = 16)
+    )
+}
+
+
+
+# plot SIC against return rates ####
+# first remove data from cape bird
+sic_rs_df_g2000%>%
+  filter(colony!="BIRD")%>%
+  pivot_longer(cols=full_hr_molt_sic:west_molt95_sic,names_to="contour",values_to="sic")%>%  
+ggplot(aes(x=sic, y=prop_resight,col=colony,fill=colony)) +
   geom_point() +
-  geom_smooth(method="lm") +
+  geom_smooth(formula = y ~ poly(x, 2),method="lm") +
+  facet_wrap(~contour) + 
   #scale_y_continuous(breaks=seq(0,60,by=10)) +
   #scale_x_continuous(breaks=seq(2003,2021,by=2)) +
-  ylab("Prop ly banded birds seen ty") +
-  xlab("Sea Ice Concentration in the molt HR area") +
-  theme_classic() +
+  ylab("BB seen time t resighted in time t+1\n(proportion)") +
+  xlab("Sea Ice Concentration in molt areas (%)") +
+  peng_theme() +
   theme(axis.title=element_text(size=16),axis.text=element_text(size=14))+
-  ggpmisc::stat_poly_eq(formula = my.formula, 
-                       aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+  scale_color_manual(name="", values=cols)+
+  scale_fill_manual(name="",values=cols)+
+  ggpmisc::stat_poly_eq(formula = y ~ poly(x, 2), 
+                       aes(label = paste(..eq.label.., ..rr.label.., after_stat(p.value.label), sep = "~~~~~")), 
                        parse = TRUE)
+
+
+
+# model RR against SIC in different regions ####
+
+# Croz models
+c_dat <-filter(sic_rs_df_g2000,colony=="CROZ")
+
+# linear models
+m_e50_c <- lm(prop_resight~east_molt50_sic,data = c_dat)
+summary(m_e50_c)
+
+m_e95_c <- lm(prop_resight~east_molt95_sic,data = c_dat)
+summary(m_e95_c)
+
+m_w50_c <- lm(prop_resight~west_molt50_sic,data = c_dat)
+summary(m_w50_c)
+
+m_w95_c <- lm(prop_resight~west_molt95_sic,data = c_dat)
+summary(m_w95_c)
+
+#quadratic models
+m_e50_c2 <- lm(prop_resight~poly(east_molt50_sic,2),data = c_dat)
+summary(m_e50_c2)
+
+m_e95_c2 <- lm(prop_resight~poly(east_molt95_sic,2),data = c_dat)
+summary(m_e95_c2)
+
+m_w50_c2 <- lm(prop_resight~poly(west_molt50_sic,2),data = c_dat)
+summary(m_w50_c2)
+
+m_w95_c2 <- lm(prop_resight~poly(west_molt95_sic,2),data = c_dat)
+summary(m_w95_c2)
+
+
+cAIC_tab <- bbmle::AICctab(m_e50_c,m_e50_c2,m_e95_c,m_e95_c2,m_w50_c,m_w50_c2,m_w95_c,m_w95_c2,nobs=21,weights=TRUE,base=TRUE)
+
+# Royds models ####
+r_dat <-filter(sic_rs_df_g2000,colony=="ROYD")
+
+# linear models
+m_e50_r <- lm(prop_resight~east_molt50_sic,data = r_dat)
+summary(m_e50_r)
+
+m_e95_r <- lm(prop_resight~east_molt95_sic,data = r_dat)
+summary(m_e95_r)
+
+m_w50_r <- lm(prop_resight~west_molt50_sic,data = r_dat)
+summary(m_w50_r)
+
+m_w95_r <- lm(prop_resight~west_molt95_sic,data = r_dat)
+summary(m_w95_r)
+
+#quadratic models
+m_e50_r2 <- lm(prop_resight~poly(east_molt50_sic,2),data = r_dat)
+summary(m_e50_r2)
+
+m_e95_r2 <- lm(prop_resight~poly(east_molt95_sic,2),data = r_dat)
+summary(m_e95_r2)
+
+m_w50_r2 <- lm(prop_resight~poly(west_molt50_sic,2),data = r_dat)
+summary(m_w50_r2)
+
+m_w95_r2 <- lm(prop_resight~poly(west_molt95_sic,2),data = r_dat)
+summary(m_w95_r2)
+
+rAIC_tab <- bbmle::AICctab(m_e50_r,m_e50_r2,m_e95_r,m_e95_r2,m_w50_r,m_w50_r2,m_w95_r,m_w95_r2,nobs=21,weights=TRUE,base=TRUE)
+
+
+# Plot top model ####
+sic_rs_df_g2000%>%
+  filter(colony!="BIRD")%>%
+  pivot_longer(cols=full_hr_molt_sic:west_molt95_sic,names_to="contour",values_to="sic")%>%
+  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined HR", "West 50%", "West 95%")))%>%
+  filter(Contour%in%c("East 95%", "West 95%"))%>%
+  ggplot(aes(x=sic, y=prop_resight,col=colony,fill=colony)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x,method="lm") +
+  facet_wrap(~Contour)+
+  #scale_y_continuous(breaks=seq(0,60,by=10)) +
+  #scale_x_continuous(breaks=seq(2003,2021,by=2)) +
+  ylab("BB seen time t resighted in time t+1\n(proportion)") +
+  xlab("Sea Ice Concentration in molt areas (%)") +
+  peng_theme() +
+  theme(axis.title=element_text(size=16),axis.text=element_text(size=14))+
+  scale_color_manual(name="", values=cols)+
+  scale_fill_manual(name="",values=cols)+
+  ggpmisc::stat_poly_eq(formula = y ~ x, 
+                        aes(label = paste(..eq.label.., ..adj.rr.label.., after_stat(p.value.label), sep = "~~~~~")), 
+                        parse = TRUE)
+
 
 
 #model this fit; note options available for SIC data between SSMI and AMSR (the latter not available before 2002 and also not available for 2012)
 #rs_sic_fit<-lm(data=sic_rs_df_g2000,prop_resight~ssmi_hr_molt_sic_num) #SSMI
 rs_sic_fit<-lm(data=sic_rs_df_g2000,prop_resight~croz_hr_molt_sic) #all SSMI
 summary(rs_sic_fit)
-#R2=0.3948 for Crozier, P=0.001
 
 #now just breeders
 #ggplot(sic_rs_df, aes(x=total_hr_molt_sic, y=prop_br_resight)) +

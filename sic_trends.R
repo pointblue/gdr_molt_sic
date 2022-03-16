@@ -53,7 +53,8 @@ peng_theme <- function() {
 
 
 # plot SIC trends in different regions
-p <- sic%>%
+# trend in 50% area
+p50 <- sic%>%
   pivot_longer(cols=full_hr_molt_sic:west_molt95_sic, names_to="contour",values_to="sic")%>%
   mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined HR", "West 50%", "West 95%")))%>%
   filter(Contour%in%c("East 50%","Combined HR", "West 50%"))%>%
@@ -61,62 +62,36 @@ p <- sic%>%
   geom_point()+
   geom_line()+
   geom_smooth(se = TRUE, method = lm)+
-  # scale_color_discrete(type=col.to,name="")+
-  # scale_fill_discrete(type=col.to,name="")+
-  scale_color_viridis(name="",discrete = TRUE)+
-  scale_fill_viridis(name="",discrete = TRUE)+
+  scale_color_manual(name="", values=c("East 50%"= col1, "West 50%" = col2, "Combined HR" = col3))+
+  scale_fill_manual(name="", values=c("East 50%"= col1, "West 50%" = col2, "Combined HR" = col3))+
   peng_theme()+
   ylab("Sea Ice Concentration (%)")+
   xlab("Year")
 
-ggplot_build(p)
+print(p50)
 
-p_mlocs <- p<- ggplot()+
-  geom_tile(data=summ_SPixDF,aes(x,y,fill=layer))+
-  scale_fill_viridis(legend.title)+
-  # 1000m isobath
-  geom_path(data=iso1000,aes(x = long, y = lat,group=group,col="1000m isobath"),show.legend = TRUE,size=0.75)+
-  # add 50% and 95% contours
-  geom_path(data=cont_50_poly_clip,size=1,aes(x=long,y=lat, group=group,col="50%"),show.legend = "line")+
-  geom_path(data=cont_95_poly_clip,size=1,aes(x=long,y=lat, group=group,col="95%"), show.legend = "line")+
-  # mpa boundary
-  geom_polygon(data=mpa_t,aes(x=long,y=lat, group=group,col="RSRMPA",linetype = "RSRMPA"),
-               show.legend = "line",fill="grey",alpha=0,size=0.8)+
-  
-  # antarctica coastline
-  geom_polygon(
-    data = ant,
-    aes(x = long, y = lat, group = group),
-    fill = "grey90",
-    # alpha = 0.3,
-    col = "grey50"
-  ) +
-  # lat lon grid
-  geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
-  # set coord system and limits
-  coord_sf(
-    crs = proj_ant,
-    xlim = c(-1625000,   2075000),
-    ylim = c(825000, 3175000),
-  )+
-  theme_classic()+
-  scale_color_manual("",values=c("50%"="green", "95%"="purple","RSRMPA" = "grey85","1000m isobath" = "grey50"),
-                     breaks = c("50%", "95%","RSRMPA","1000m isobath"))+
-  # scale_linetype_manual(values =c("50%"=1, "95%"=1,"RSRMPA" = 1,"2000m isobath" = 1,"ACC front" = 3))+
-  guides(color = guide_legend(override.aes = list(linetype = c(1,1,1,1))))+
-  scale_linetype(guide = FALSE)+
-  theme(title = element_text(size = 14),
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 8),
-        axis.text.x = element_text(angle = 90),
-        legend.title = element_text(size = 10))+
-  xlab(xlab) +
-  ylab(ylab) +
-  # scale_fill_manual(lims=c(0.0001,1))+
-  scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))+
-  ggtitle(title)
+ggplot_build(p50)
 
+# trend in 95% area
+p95 <- sic%>%
+  pivot_longer(cols=full_hr_molt_sic:west_molt95_sic, names_to="contour",values_to="sic")%>%
+  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined HR", "West 50%", "West 95%")))%>%
+  filter(Contour%in%c("East 95%","Combined HR", "West 95%"))%>%
+  ggplot(aes(year,sic,col=Contour,fill=Contour, group=Contour))+
+  geom_point()+
+  geom_line()+
+  geom_smooth(se = TRUE, method = loess)+
+  scale_color_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined HR" = col3))+
+  scale_fill_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined HR" = col3))+
+  peng_theme()+
+  ylab("Sea Ice Concentration (%)")+
+  xlab("Year")
+  ggpmisc::stat_poly_eq(formula = y ~ x, 
+                        aes(label = paste(..eq.label.., ..adj.rr.label.., after_stat(p.value.label), sep = "~~~~~")), 
+                        parse = TRUE)+
+  ylim(0,60)
 
+print(p95)
 #-------------------------------------------------------------------------------------#
 ##Calculate summary statistics for ssmi time series####
 #-------------------------------------------------------------------------------------#
@@ -188,6 +163,7 @@ acf(sic$east_molt95_sic)
 m_e95 <- lm(east_molt95_sic~year,data=sic)
 summary(m_e95)
 acf(resid(m_e95))# no autocorrelation in residuals
+plot(m_e95)# residuals and QQ plot look reasonable
 
 # West 50
 w_acf <-acf(sic$west_molt50_sic) # possibly autocorrelated with 5 yr lag
@@ -200,4 +176,4 @@ acf(sic$west_molt95_sic) # possibly autocorrelated with 5 yr lag
 m_w95 <- lm(west_molt95_sic~year,data=sic)
 summary(m_w95)
 acf(resid(m_w50)) # no autocorrelation in residuals
-
+plot(m_w95) # QQ plot maybe has some problems
