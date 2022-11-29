@@ -18,7 +18,6 @@ plot_mlocs <- function(data,colony,seasons,months=unique(data$month),grid_size,x
   require(rgdal)
   require(sf)
   require(ggspatial)
-  require(nngeo)
   
   # func=match.fun(fun)
   # filter data to subset desired
