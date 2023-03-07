@@ -458,11 +458,26 @@ write.csv(ma_results_df,paste0(analyses_dir,"data/ew_molt_area_sic_summary.csv")
 #make a new results df#
 
 ma_all_year_results_ssmi_df<-
-  data.frame(year=integer(), full_hr_molt_sic=double(), east_molt50_sic=double(),east_molt95_sic=double(), west_molt50_sic=double(), west_molt95_sic=double(), n_files=double(), stringsAsFactors=F)
+  data.frame(
+    year = integer(),
+    full_hr_molt_sic = double(),
+    full_hr_molt_sd = double(),
+    east_molt50_sic = double(),
+    east_molt50_sd = double(),
+    east_molt95_sic = double(),
+    east_molt95_sd = double(),
+    west_molt50_sic = double(),
+    west_molt50_sd = double(),
+    west_molt95_sic = double(),
+    west_molt95_sd = double(),
+    n_files = double(),
+    stringsAsFactors = F
+  )
 
 
 for(yy in c(1980:2021)) {
   myyear=as.character(yy)
+  message(yy)
   #name the location where SSMI data live
   ssmi_dir=paste0(GIS_dir,"sat_images/sea_ice/geotiff/",myyear,"/")#if on pointblue network
   # ssmi_dir=paste0(GIS_dir,"sat_images/ssmi/geotiff/",myyear,"/")
@@ -531,21 +546,42 @@ for(yy in c(1980:2021)) {
   
   east_molt50_vals<-getValues(east_molt50_sic_clip)
   east_molt50_sic<-round(mean(east_molt50_vals, na.rm=T),2)
+  east_molt50_sd <- round(sd(east_molt50_vals, na.rm=T),2)
+  
   east_molt95_vals<-getValues(east_molt95_sic_clip)
   east_molt95_sic<-round(mean(east_molt95_vals, na.rm=T),2)
+  east_molt95_sd <- round(sd(east_molt95_vals, na.rm=T),2)
   
   west_molt50_vals<-getValues(west_molt50_sic_clip)
   west_molt50_sic<-round(mean(west_molt50_vals, na.rm=T),2)
+  west_molt50_sd <-round(sd(west_molt50_vals, na.rm=T),2)
+  
   west_molt95_vals<-getValues(west_molt95_sic_clip)
   west_molt95_sic<-round(mean(west_molt95_vals, na.rm=T),2)
+  west_molt95_sd <- round(sd(west_molt95_vals, na.rm=T),2)
   
   
   full_hr_vals<-getValues(full_hr_sic_clip)
   full_hr_sic<-round(mean(full_hr_vals, na.rm=T),2)
+  full_hr_sd <-round(sd(full_hr_vals, na.rm=T),2)
+  
   #update the results table
 
   #ma_all_year_results_ssmi_df[nrow(ma_all_year_results_ssmi_df)+1,] <- c(myyear,hr_molt_sic,hr_fdive_sic,num_files)
-  ma_all_year_results_ssmi_df[nrow(ma_all_year_results_ssmi_df)+1,] <- c(myyear, full_hr_sic, east_molt50_sic, east_molt95_sic, west_molt50_sic,west_molt95_sic, num_files)
+  ma_all_year_results_ssmi_df[nrow(ma_all_year_results_ssmi_df)+1,] <- c(
+    myyear,
+    full_hr_sic,
+    full_hr_sd,
+    east_molt50_sic,
+    east_molt50_sd,
+    east_molt95_sic,
+    east_molt95_sd,
+    west_molt50_sic,
+    west_molt50_sd,
+    west_molt95_sic,
+    west_molt95_sd,
+    num_files
+  )
   
   #write the rasters 
   writeRaster(east_molt50_sic_clip, paste0(analyses_dir,"data/sic/ssmi_1980-2019/east_molt50_sic_ssmi_",myyear), format="GTiff", overwrite=T)
@@ -557,7 +593,7 @@ for(yy in c(1980:2021)) {
 }
 
 #write.csv(ma_all_year_results_ssmi_df,paste0(analyses_dir,"data/molt_area_hr_sic_summary_all_2003-2005_ssmi.csv"),row.names=F)
-write.csv(ma_all_year_results_ssmi_df,paste0(analyses_dir,"data/sic_summary_ssmi_1980-2021.csv"),row.names=F)
+write.csv(ma_all_year_results_ssmi_df,paste0(analyses_dir,"data/sic_summary_ssmi_1980-2021_v2023-02-22.csv"),row.names=F)
 
 # ma_all_year_results_ssmi_df <- read_csv(paste0(analyses_dir,"data/sic_summary_ssmi_1980-2021.csv"))
 

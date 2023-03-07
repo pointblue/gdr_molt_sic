@@ -114,7 +114,7 @@ ew_2017<-
   geom_path(data=east95_2017,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95_2017,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
   # combined HR
-  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined\nNonbreeding\nRange",linetype="Combined\nNonbreeding\nRange"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -124,7 +124,7 @@ ew_2017<-
     col = "grey50")+
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
-  geom_label(aes(x=-1325000,y=1175000),label="2017")+
+  geom_label(aes(x=-1325000,y=1175000),label="2017",hjust = "inward", size = 3)+
   geom_text(aes(x=-1325000,y=3005000),label="C",color="white",size=6)+
   # set coord system and limits
   coord_sf(
@@ -133,9 +133,9 @@ ew_2017<-
     ylim = c(1105000, 3175000))+
   theme_classic()+
   scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined\nNonbreeding\nRange", "RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined\nNonbreeding\nRange","RSRMPA"),guide="none")+
   # guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -143,7 +143,7 @@ ew_2017<-
         axis.text.x = element_text(angle = 90),
         legend.title = element_text(size = 10),
         legend.position = "")+
-  labs(x="Longitude",y="Latitude") +
+  labs(x="",y="Latitude") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
 
 print(ew_2017)
@@ -168,7 +168,7 @@ ew_2018<-
   geom_path(data=east95_2018,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95_2018,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
   # combined HR
-  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined\nNonbreeding\nRange",linetype="Combined\nNonbreeding\nRange"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -178,7 +178,7 @@ ew_2018<-
     col = "grey50")+
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
-  geom_label(aes(x=-1325000,y=1175000),label="2018")+
+  geom_label(aes(x=-1325000,y=1175000),label="2018", hjust = "inward", size = 3)+
   geom_text(aes(x=-1325000,y=3005000),label="D",color="white",size=6)+
   # set coord system and limits
   coord_sf(
@@ -187,9 +187,9 @@ ew_2018<-
     ylim = c(1105000, 3175000))+
   theme_classic()+
   scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined\nNonbreeding\nRange", "RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined\nNonbreeding\nRange","RSRMPA"),guide="none")+
   # guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -197,7 +197,7 @@ ew_2018<-
         axis.text.x = element_text(angle = 90),
         legend.title = element_text(size = 10),
         legend.position = "")+
-  labs(x="Longitude",y="Latitude") +
+  labs(x="",y="") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
 
 # print(ew_2018)
@@ -222,7 +222,7 @@ ew_2019<-
   geom_path(data=east95_2019,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95_2019,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
   # combined HR
-  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined\nNonbreeding\nRange",linetype="Combined\nNonbreeding\nRange"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -233,7 +233,7 @@ ew_2019<-
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
   geom_text(aes(x=-1325000,y=3005000),label="E",color="white",size=6)+
-  geom_label(aes(x=-1325000,y=1175000),label="2019")+
+  geom_label(aes(x=-1325000,y=1175000),label="2019", hjust = "inward", size = 3)+
   # set coord system and limits
   coord_sf(
     crs = proj_ant,
@@ -241,9 +241,9 @@ ew_2019<-
     ylim = c(1105000, 3175000))+
   theme_classic()+
   scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined\nNonbreeding\nRange", "RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined\nNonbreeding\nRange","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -251,7 +251,7 @@ ew_2019<-
         axis.text.x = element_text(angle = 90),
         legend.title = element_text(size = 10),
         legend.position="")+
-  labs(x="Longitude",y="Latitude") +
+  labs(x="Longitude",y="") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
 # print(ew_2019)
 
@@ -275,7 +275,7 @@ ew_2003<-
   geom_path(data=east95,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
   # combined HR
-  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined\nNonbreeding\nRange",linetype="Combined\nNonbreeding\nRange"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -286,7 +286,7 @@ ew_2003<-
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
   geom_text(aes(x=-1325000,y=3005000),label="A",color="white",size=6)+
-  geom_label(aes(x=-1325000,y=1175000),label="2003")+
+  geom_label(aes(x=-1325000,y=1175000),label="High SIC (2003)", hjust = "inward", size = 3)+
   # set coord system and limits
   coord_sf(
     crs = proj_ant,
@@ -294,9 +294,9 @@ ew_2003<-
     ylim = c(1105000, 3175000))+
   theme_classic()+
   scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined\nNonbreeding\nRange", "RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined\nNonbreeding\nRange","RSRMPA"),guide="none")+
   # guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
@@ -304,10 +304,11 @@ ew_2003<-
         axis.text.x = element_text(angle = 90),
         legend.title = element_text(size = 10),
         legend.position = "")+
-  labs(x="Longitude",y="Latitude") +
+  labs(x="",y="") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
 
-# print(ew_2003)
+print(ew_2003)
+
 # 2006 ####
 ew_2006<-
   ggplot()+
@@ -328,7 +329,7 @@ ew_2006<-
   geom_path(data=east95,aes(x=long,y=lat, group=group,col="East 95%",linetype="East 95%"),size=.5)+
   geom_path(data=west95,aes(x=long,y=lat, group=group,col="West 95%", linetype="West 95%"),size=.5)+
   # combined HR
-  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined Home Range",linetype="Combined Home Range"),size=1.2)+
+  geom_path(data=comb_poly,aes(x=long,y=lat, group=group,col="Combined\nNonbreeding\nRange",linetype="Combined\nNonbreeding\nRange"),size=1.2)+
   # antarctica coastline
   geom_polygon(
     data = ant,
@@ -339,7 +340,7 @@ ew_2006<-
   # lat lon grid
   geom_path(data=polar_grid,aes(x = long, y = lat,group=group),col="grey80",lwd=0.05,alpha=0.5)+
   geom_text(aes(x=-1325000,y=3005000),label="B",color="white",size=6)+
-  geom_label(aes(x=-1325000,y=1175000),label="2006")+
+  geom_label(aes(x=-1310000,y=1175000),label="Average SIC (2006)", hjust = "inward", size = 3)+
   # set coord system and limits
   coord_sf(
     crs = proj_ant,
@@ -347,19 +348,19 @@ ew_2006<-
     ylim = c(1105000, 3175000))+
   theme_classic()+
   scale_color_manual(name="", values=c(col1, col1,col2,col2,col3,"grey85","grey50"),
-                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined Home Range", "RSRMPA"))+
+                     breaks = c("East 50%","East 95%", "West 50%","West 95%","Combined\nNonbreeding\nRange", "RSRMPA"))+
   scale_linetype_manual(values=c(1,1,1,1,1,1),
-                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined Home Range","RSRMPA"),guide="none")+
+                        breaks = c("East 50%","East 95%", "West 50%","West 95%", "Combined\nNonbreeding\nRange","RSRMPA"),guide="none")+
   guides(col = guide_legend(override.aes = list(linetype = c(1,1,1,1,1,1),lwd=c(2,0.5,2,0.5,2,1.2))))+
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
         axis.text.x = element_text(angle = 90),
-        legend.title = element_text(size = 10),
+        legend.title = element_text(size = 10), 
         legend.position = "")+
-  labs(x="Longitude",y="Latitude") +
+  labs(x="",y= "") +
   scale_x_continuous(breaks = c(110,130,180,-130,-110,-100))
-# print(ew_2006)
+print(ew_2006)
 
 
 leg <- ggpubr::get_legend(ew_2006) # have to delete legend.position="" and run first, need a better solution than this
@@ -376,7 +377,7 @@ ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
   plot_layout(widths = 1,nrow = 3)
 dev.off()
 
-jpeg("figs/SIC_ssmi_molt_xyr_maps.jpg",height=11,width=8.5,unit="in",res=600)
+jpeg("figs/SIC_ssmi_molt_xyr_maps.jpg",height=11,width=8.5,unit="in",res=300)
 ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
   plot_layout(widths = 1,nrow = 3)
 dev.off()

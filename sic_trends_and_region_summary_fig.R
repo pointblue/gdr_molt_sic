@@ -8,7 +8,7 @@ library(viridis)
 # library(ggstar)
 
 # load data ####
-sic <- read_csv("data/sic_summary_ssmi_1980-2021.csv")
+sic <- read_csv("data/sic_summary_ssmi_1980-2021_v2023-02-22.csv")
 # sic_1719<-read_csv("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/ew_molt_area_sic_summary.csv")
 
 
@@ -59,15 +59,15 @@ peng_theme <- function() {
 # plot SIC trends in different regions
 # trend in 50% area
 p50 <- sic%>%
-  pivot_longer(cols=full_hr_molt_sic:west_molt95_sic, names_to="contour",values_to="sic")%>%
-  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined HR", "West 50%", "West 95%")))%>%
-  filter(Contour%in%c("East 50%","Combined HR", "West 50%"))%>%
+  pivot_longer(cols=contains("sic"), names_to="contour",values_to="sic")%>%
+  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
+  filter(Contour%in%c("East 50%","Combined\nNonbreeding\nRange", "West 50%"))%>%
   ggplot(aes(year,sic,col=Contour,fill=Contour, group=Contour))+
   geom_point()+
   geom_line()+
   geom_smooth(se = TRUE, method = lm)+
-  scale_color_manual(name="", values=c("East 50%"= col1, "West 50%" = col2, "Combined HR" = col3))+
-  scale_fill_manual(name="", values=c("East 50%"= col1, "West 50%" = col2, "Combined HR" = col3))+
+  scale_color_manual(name="", values=c("East 50%"= col1, "West 50%" = col2, "Combined\nNonbreeding\nRange" = col3))+
+  scale_fill_manual(name="", values=c("East 50%"= col1, "West 50%" = col2, "Combined\nNonbreeding\nRange" = col3))+
   peng_theme()+
   ylab("Sea Ice Concentration (%)")+
   xlab("Year")
@@ -78,17 +78,18 @@ ggplot_build(p50)
 
 # trend in 95% area
 dat <- sic%>%
-  pivot_longer(cols=full_hr_molt_sic:west_molt95_sic, names_to="contour",values_to="sic")%>%
-  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined HR", "West 50%", "West 95%")))%>%
-  filter(Contour%in%c("East 95%","Combined HR", "West 95%"))
+  pivot_longer(cols=contains("sic"), names_to="contour",values_to="sic")%>%
+  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
+  filter(Contour%in%c("East 95%","Combined\nNonbreeding\nRange", "West 95%"))
 p95 <- 
   ggplot(data = dat,aes(year,sic,col=Contour,fill=Contour, group=Contour))+
   geom_point()+
   geom_line()+
-  ggstar::geom_star(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=2, show.legend = FALSE)+
+  # ggstar::geom_star(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=2, show.legend = FALSE)+
+  geom_point(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=3, shape = "triangle", show.legend = FALSE)+
   geom_smooth(se = TRUE, method = lm)+
-  scale_color_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined HR" = col3))+
-  scale_fill_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined HR" = col3))+
+  scale_color_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined\nNonbreeding\nRange" = col3))+
+  scale_fill_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined\nNonbreeding\nRange" = col3))+
   peng_theme()+
   theme(legend.position = c(0.9,0.9))+
   ylab("Sea Ice Concentration (%)")+
@@ -123,8 +124,8 @@ print(c(mean_full,mean_east50,mean_west50, mean_east95, mean_west95))
 
 # make data frame so can make bar chart with error bars
 summ_df <-sic%>%
-  pivot_longer(cols = full_hr_molt_sic:west_molt95_sic,names_to = "contour",values_to = "sic")%>%
-  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined HR", "West 50%", "West 95%")))%>%
+  pivot_longer(cols = contains("sic"), names_to = "contour",values_to = "sic")%>%
+  mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
   group_by(Contour)%>%
   summarise(mean=mean(sic),se=sd(sic)/sqrt(n()))
 
@@ -132,46 +133,47 @@ summ_df <-sic%>%
 summ_1719 <- sic%>%
   filter(year %in% c(2017:2019))%>%
   # pivot_longer(cols = east_50ma_sic:total_hr_sic,names_to = "contour",values_to = "sic")%>% use this line if using the AMSR data table
-  pivot_longer(cols = full_hr_molt_sic:west_molt95_sic,names_to = "contour",values_to = "sic")%>%
-  mutate(Contour = factor(contour, labels = c("East 50%","East 95%","Combined HR", "West 50%", "West 95%")))%>%
+  pivot_longer(cols = contains("sic"),names_to = "contour",values_to = "sic")%>%
+  mutate(Contour = factor(contour, labels = c("East 50%","East 95%","Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
   group_by(Contour)%>%
   summarise(mean=mean(sic),se=sd(sic)/sqrt(n()))
 
-p_bar <-ggplot()+
-  geom_bar(data=summ_df,aes(Contour,mean,col=Contour,fill=Contour),col="white",stat = "identity")+
-  geom_errorbar(data=summ_df,aes(Contour,mean,ymin=mean-se,ymax=mean+se,fill=Contour),col="grey70",width=0.06, size=0.8,position=position_dodge(width=0.2))+
+p_point <-ggplot()+
+  geom_point(data=summ_df,aes(Contour,mean, col = Contour), size = 4)+
+  geom_errorbar(data=summ_df,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col=Contour),width=0.06, size=0.8)+
 
-  geom_errorbar(data=summ_1719,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col=Contour),width=0.05, size=0.8,position=position_dodge(width=0.2))+
-  geom_point (data=summ_1719,aes(Contour,mean,col=Contour),size=4)+
+  geom_errorbar(data=summ_1719,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col = Contour),width=0.05, size=0.8)+
+  # ggstar::geom_star(data = summ_1719,aes(Contour, mean, col = Contour),size=4) + 
+  geom_point (data=summ_1719,aes(Contour,mean,col=Contour), size=4, shape = "triangle")+
   
-  scale_color_manual(name="Study mean", values=c("East 50%" = "#9d8900", "East 95%"= "gold","Combined HR" = "#005f59", "West 50%" = "#50005a", "West 95%" = col2))+
-  scale_fill_manual(name="Long-term mean", values=c("East 50%" = col1, "East 95%"= col4,  "Combined HR" = col3,"West 50%" = col2, "West 95%" = col5))+
+  scale_color_manual(name="Study mean", values=c("East 50%" = "#9d8900", "East 95%"= "gold","Combined\nNonbreeding\nRange" = "#005f59", "West 50%" = "#50005a", "West 95%" = col2))+
+  scale_fill_manual(name="Long-term mean", values=c("East 50%" = col1, "East 95%"= col4,  "Combined\nNonbreeding\nRange" = col3,"West 50%" = col2, "West 95%" = col5))+
   peng_theme()+
   theme(legend.position="")+
   ylab("Sea Ice Concentration (%)")+
   xlab("Area")+
   geom_text(aes(label="A",x = "East 50%", y = 52),color="black",size=6, nudge_x = -0.4)
 
-print(p_bar)
+print(p_point)
 
 
-pdf("figs/SIC_mean_x_contour_bar.pdf", width = 7.5,height = 5)
-print(p_bar)
-dev.off()
-
-jpeg("figs/SIC_mean_x_contour_bar.jpg", width = 7.5,height = 5, units="in", res=600)
-print(p_bar)
-dev.off()
+# pdf("figs/SIC_mean_x_contour_bar.pdf", width = 7.5,height = 5)
+# print(p_bar)
+# dev.off()
+# 
+# jpeg("figs/SIC_mean_x_contour_bar.jpg", width = 7.5,height = 5, units="in", res=600)
+# print(p_bar)
+# dev.off()
                      
+# 
+# # plot barplot and trends together
+# pdf("figs/SIC_mean_bar_and_trend_comb.pdf", width = 7.5,height = 10)
+# gridExtra::grid.arrange(p_point,p95)
+# dev.off()
 
-# plot barplot and trends together
-pdf("figs/SIC_mean_bar_and_trend_comb.pdf", width = 7.5,height = 10)
-gridExtra::grid.arrange(p_bar,p95)
-dev.off()
-
-jpeg("figs/SIC_mean_bar_and_trend_comb.jpg", 
+jpeg("figs/SIC_mean_point_and_trend_comb.jpg", 
      width = 7.5,height = 10, units = "in", res=300)
-gridExtra::grid.arrange(p_bar,p95)
+gridExtra::grid.arrange(p_point,p95)
 dev.off()
 
 
