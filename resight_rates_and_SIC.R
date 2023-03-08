@@ -155,33 +155,14 @@ summary(m_e50_c)
 
 m_e95_c <- lm(prop_resight ~ east_molt95_sic, data = c_dat)
 summary(m_e95_c)
-
-# check if need to detrend
-m_e95_cd <- lm(prop_resight_d ~ east95_d, data = c_dat)
-summary(m_e95_cd)
+plot(m_e95_c)
+acf(m_e95_c$residuals) # no autocorrelation in residuals
 
 m_w50_c <- lm(prop_resight ~ west_molt50_sic, data = c_dat)
 summary(m_w50_c)
 
 m_w95_c <- lm(prop_resight ~ west_molt95_sic, data = c_dat)
 summary(m_w95_c)
-
-# linear models for crozier return rate with iceberg
-m_e50_ci <- 
-  lm(prop_resight ~ east_molt50_sic + iceberg, data = c_dat)
-summary(m_e50_ci)
-
-m_e95_ci <-
-  lm(prop_resight ~ east_molt95_sic + iceberg, data = c_dat)
-summary(m_e95_ci)
-
-m_w50_ci <-
-  lm(prop_resight ~ west_molt50_sic + iceberg, data = c_dat)
-summary(m_w50_ci)
-
-m_w95_ci <-
-  lm(prop_resight ~ west_molt95_sic + iceberg, data = c_dat)
-summary(m_w95_ci)
 
 # quadratic models
 m_e50_c2 <-
@@ -236,32 +217,6 @@ c_r2 <-
         summary(m_w95_c2)$adj.r.squared,
         summary(m_null_c)$adj.r.squared
         ))
-  #   coef = 
-  #     c(summary(m_e50_c)$coefficients,
-  #       summary(m_e50_c2)$coefficients,
-  #       summary(m_e95_c)$coefficients,
-  #       summary(m_e95_c2)$coefficients,
-  #       summary(m_w50_c)$coefficients,
-  #       summary(m_w50_c2)$coefficients,
-  #       summary(m_w95_c)$coefficients,
-  #       summary(m_w95_c2)$coefficients),
-  #   std_err =
-  #     c(summary(m_e50_c)$sigma,
-  #       summary(m_e50_c2)$sigma,
-  #       summary(m_e95_c)$sigma,
-  #       summary(m_e95_c2)$sigma,
-  #       summary(m_w50_c)$sigma,
-  #       summary(m_w50_c2)$sigma,
-  #       summary(m_w95_c)$sigma,
-  #       summary(m_w95_c2)$sigma)
-  # )
-
-#     
-# jtools:: export_summs(m_e50_c,
-#                       model.names = "East 50%",
-#                       coefs = c("SIC" = "east_molt50_sic")
-#                       )
-
 
 cAIC_tab <-
   bbmle::AICctab(
@@ -293,7 +248,7 @@ cAIC_tab <-
          
 
 # write table
-# write_csv(cAIC_tab, "results/croz_SIC_rr_model_tab_v2023-01-24.csv")
+write_csv(cAIC_tab, "results/croz_SIC_rr_model_tab_v2023-01-24.csv")
 
 
 # results from top model
@@ -322,8 +277,10 @@ summary(m_e95_r)
 m_w50_r <- lm(prop_resight ~ west_molt50_sic, data = r_dat)
 summary(m_w50_r)
 
-m_w95_r2 <- lm(prop_resight ~ west95_d, data = r_dat)
+m_w95_r <- lm(prop_resight ~ west95_d, data = r_dat)
 summary(m_w95_r2)
+plot(m_w95_r)
+acf(m_w95_r$residuals) # no autocorrelation in residuals
 
 #quadratic models
 m_e50_r2 <- lm(prop_resight ~ poly(east_molt50_sic, 2), data = r_dat)
@@ -394,7 +351,7 @@ rAIC_tab <-
          weight,
          adj_r2)
 
-sjPlot::tab_model(m_e95_r)
+sjPlot::tab_model(m_w95_r)
 
 # # write table
 write_csv(rAIC_tab, "results/royd_SIC_rr_model_tab_v2023-02-24.csv")
@@ -439,7 +396,7 @@ sic_rs_df_g2000 %>%
   ) +
   scale_color_manual(name = "", values = cols[1]) +
   scale_fill_manual(name = "", values = cols[1]) +
-  ylim(0.35, 0.8) + 
+  ylim(0.35, 0.85) + 
   xlim(0,50) +
     ggtitle("Cape Crozier")
   # uncomment if you want r2 and p values to appear on figure
@@ -489,7 +446,7 @@ p_top_r <-
     strip.text = element_text(size = 14),
     axis.title.y = element_text(size = 14)
   ) +
-  ylim(0.35, 0.8) + 
+  ylim(0.35, 0.85) +
   xlim(0,50) +
   ggtitle("Cape Royds")
   # ggpmisc::stat_poly_eq(
@@ -507,58 +464,6 @@ p_top_r <-
   #   small.p = TRUE
   # )
 print(p_top_r)
-
-# p_top <- sic_rs_df_g2000 %>%
-#   filter(colony != "BIRD") %>%
-#   pivot_longer(
-#     cols = full_hr_molt_sic:west_molt95_sic,
-#     names_to = "contour",
-#     values_to = "sic"
-#   ) %>%
-#   mutate(Contour = factor(
-#     contour,
-#     labels = c("East 50%", "East 95%", "Combined HR", "West 50%", "West 95%")
-#   )) %>%
-#   filter(Contour %in% c("East 95%", "West 95%")) %>%
-#   ggplot(aes(
-#     x = sic,
-#     y = prop_resight,
-#     col = colony,
-#     fill = colony
-#   )) +
-#   geom_point() +
-#   geom_smooth(formula = y  ~  x, method = "lm") +
-#   facet_wrap(~  Contour) +
-#   #scale_y_continuous(breaks=seq(0,60,by=10)) +
-#   #scale_x_continuous(breaks=seq(2003,2021,by=2)) +
-#   ylab("Banded Bird Return Rate") +
-#   xlab("Sea Ice Concentration in Molt Areas (%)") +
-#   peng_theme() +
-#   theme(
-#     strip.background = element_blank(),
-#     strip.text = element_text(size = 14),
-#     axis.title.y = element_text(size = 14)
-#   ) +
-#   scale_color_manual(name = "", values = cols) +
-#   scale_fill_manual(name = "", values = cols) +
-#   ylim(0, 1) +
-#   # uncomment if you want r2 and p values to appear on figure
-#   ggpmisc::stat_poly_eq(
-#     formula = y  ~  x,
-#     aes(label = paste(
-#       ..eq.label..,
-#       ..adj.rr.label.., after_stat(p.value.label), sep = " ~  ~  ~  ~  ~ "
-#     )),
-#     parse = TRUE,
-#     p.digits = 2,
-#     rr.digits = 2,
-#     size = 3,
-#     npcx = 0.85,
-#     npcy = c(0.12, 0.05, 0.12, 0.05),
-#     small.p = TRUE
-#   )
-
-
 
 
 gridExtra::grid.arrange(p_top_c, p_top_r, nrow = 1)
@@ -580,7 +485,7 @@ jpeg(
 gridExtra::grid.arrange(p_top_c, p_top_r, nrow = 1)
 dev.off()
 
-
+# alternate analysis with Breeders only
 
 # Proportion of breeders returning
 m_e50_c_br <- lm(prop_br_resight ~ east_molt50_sic, data = c_dat)

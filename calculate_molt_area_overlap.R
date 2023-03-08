@@ -52,14 +52,13 @@ plot(de50_1718, col='red', add=T)
 plot(de50_1817, col='blue', add=T)
 
 # intersection
-e50_1718_intersection <-
+e50_1718_inter <-
   gIntersection(east50_2017, east50_2018)
-plot(e50_1718_intersection, col = "green", add = TRUE)
+plot(e50_1718_inter, col = "green", add = TRUE)
 
+# calculate area of intersection
 area_e50_1718_int <-
-  raster::area(e50_1718_intersection)
-
-
+  raster::area(e50_1718_inter)
 
 #want to calculate the percent overlap between these two polygons
 area_e50_2017 <-
@@ -67,30 +66,9 @@ area_e50_2017 <-
 area_e50_2018 <-
   raster::area(east50_2018)
 
-area_de50_1718 <-
-  raster::area(de50_1718) # area of 2017 polygon not covered by 2018 polygon
-
 prop_overlap_e50_1718 <- 
-  1-(area_de50_1718/area_e50_2017)
-
-prop <- 
   area_e50_1718_int/(area_e50_2017 + area_e50_2018 - area_e50_1718_int)
   
-
-# Calculate the other way
-area_e50_2018 <-
-  raster::area(east50_2018)
-
-# area of 2018 not covered by 2017
-area_de50_1817 <-
-  raster::area(de50_1817)
-prop_overlap_e50_1817 <-
-  1-(area_de50_1817/area_e50_2018)
-
-area_e50_2017 / area_e50_2018
-# 1.023  
-
-
 
 # calculate overlap between East 50 polygons in 2018 and 2019 -----------
 plot(east50_2018)
@@ -102,28 +80,21 @@ de50_1918<-gDifference(east50_2019,east50_2018)  #this is the part of 2019 not c
 plot(de50_1819, col='red', add=T) 
 plot(de50_1918, col='blue', add=T)
 
+# intersection
+e50_1819_inter <-
+  gIntersection(east50_2018, east50_2019)
+plot(e50_1819_inter, col = "green", add = TRUE)
+
+# calculate area of intersection
+area_e50_1819_int <-
+  raster::area(e50_1819_inter)
+
 #want to calculate the percent overlap between these two polygons
-area_e50_2018 <-
-  raster::area(east50_2018)
-
-area_de50_1819 <-
-  raster::area(de50_1819) # area of 2018 polygon not covered by 2019 polygon
-
-prop_overlap_e50_1819 <- 
-  1-(area_de50_1819/area_e50_2018)
-
-# Calculate the other way
 area_e50_2019 <-
   raster::area(east50_2019)
 
-# area of 2019 not covered by 2018
-area_de50_1918 <-
-  raster::area(de50_1918)
-prop_overlap_e50_1918 <-
-  1-(area_de50_1918/area_e50_2019)
-
-area_e50_2018 / area_e50_2019
-# 1.089 
+prop_overlap_e50_1819 <- 
+  area_e50_1819_int/(area_e50_2018 + area_e50_2019 - area_e50_1819_int)
 
 
 # calculate overlap between East 50 polygons in 2017 and 2019 -----------
@@ -136,32 +107,18 @@ de50_1917<-gDifference(east50_2019,east50_2017)  #this is the part of 2019 not c
 plot(de50_1719, col='red', add=T) 
 plot(de50_1917, col='blue', add=T)
 
+# intersection
+e50_1719_inter <-
+  gIntersection(east50_2017, east50_2019)
+plot(e50_1719_inter, col = "green", add = TRUE)
+
+# calculate area of intersection
+area_e50_1719_int <-
+  raster::area(e50_1719_inter)
+
 #want to calculate the percent overlap between these two polygons
-area_e50_2017 <-
-  raster::area(east50_2017)
-
-area_de50_1719 <-
-  raster::area(de50_1719) # area of 2017 polygon not covered by 2019 polygon
-
 prop_overlap_e50_1719 <- 
-  1-(area_de50_1719/area_e50_2017)
-
-# Calculate the other way
-area_e50_2019 <-
-  raster::area(east50_2019)
-
-# area of 2019 not covered by 2017
-area_de50_1917 <-
-  raster::area(de50_1917)
-prop_overlap_e50_1917 <-
-  1-(area_de50_1917/area_e50_2019)
-
-area_e50_2017 / area_e50_2019
-# 1.114 
-
-
-
-
+  area_e50_1719_int/(area_e50_2017 + area_e50_2019 - area_e50_1719_int)
 
 
 # # calculate overlap between West 50 polygons in 2017 and 2018 -----------
@@ -178,26 +135,20 @@ plot(dw50_1817, col='blue', add=T)
 #want to calculate the percent overlap between these two polygons
 area_w50_2017 <-
   raster::area(west50_2017)
-
-area_dw50_1718 <-
-  raster::area(dw50_1718) # area of 2017 polygon not covered by 2018 polygon
-
-prop_overlap_w50_1718 <- 
-  1-(area_dw50_1718/area_w50_2017)
-
-# Calculate the other way
 area_w50_2018 <-
   raster::area(west50_2018)
 
-# area of 2018 not covered by 2017
-area_dw50_1817 <-
-  raster::area(dw50_1817)
-prop_overlap_w50_1817 <-
-  1-(area_dw50_1817/area_w50_2018)
+# intersection
+w50_1718_inter <-
+  gIntersection(west50_2017, west50_2018)
+plot(w50_1718_inter, col = "green", add = TRUE)
 
-area_w50_2017 / area_w50_2018
-# 0.462  
+# calculate area of intersection
+area_w50_1718_int <-
+  raster::area(w50_1718_inter)
 
+prop_overlap_w50_1718 <- 
+  area_w50_1718_int/(area_w50_2017 + area_w50_2018 - area_w50_1718_int)
 
 
 # calculate overlap between west 50 polygons in 2018 and 2019 -----------
@@ -210,62 +161,52 @@ dw50_1918<-gDifference(west50_2019,west50_2018)  #this is the part of 2019 not c
 plot(dw50_1819, col='red', add=T) 
 plot(dw50_1918, col='blue', add=T)
 
-#want to calculate the percent overlap between these two polygons
-area_w50_2018 <-
-  raster::area(west50_2018)
-
-area_dw50_1819 <-
-  raster::area(dw50_1819) # area of 2018 polygon not covered by 2019 polygon
-
-prop_overlap_w50_1819 <- 
-  1-(area_dw50_1819/area_w50_2018)
-
-# Calculate the other way
+# Area of 2019 polygon
 area_w50_2019 <-
   raster::area(west50_2019)
 
-# area of 2019 not covered by 2018
-area_dw50_1918 <-
-  raster::area(dw50_1918)
-prop_overlap_w50_1918 <-
-  1-(area_dw50_1918/area_w50_2019)
-
-area_w50_2018 / area_w50_2019
-# 5.543
+# intersection
+w50_1819_inter <-
+  gIntersection(west50_2018, west50_2019)
+plot(w50_1819_inter, col = "green", add = TRUE)
 
 
-# calculate overlap between west 50 polygons in 2017 and 2019 -----------
+# calculate area of intersection
+area_w50_1819_int <-
+  raster::area(w50_1819_inter)
+
+prop_overlap_w50_1819 <- 
+  area_w50_1819_int/(area_w50_2018 + area_w50_2019 - area_w50_1819_int)
+
+
+
+# Calculate overlap between west 50 polygons in 2017 and 2019 -------------
+
 plot(west50_2017)
 plot(west50_2019, add = TRUE)
 
 
 dw50_1719<-gDifference(west50_2017, west50_2019) #this is the part of 2017 not covered by 2019
-dw50_1917<-gDifference(west50_2019,west50_2017)  #this is the part of 2019 not covered by 2017
+dw50_1918<-gDifference(west50_2019,west50_2017)  #this is the part of 2019 not covered by 2017
 plot(dw50_1719, col='red', add=T) 
-plot(dw50_1917, col='blue', add=T)
+plot(dw50_1918, col='blue', add=T)
 
-#want to calculate the percent overlap between these two polygons
-area_w50_2017 <-
-  raster::area(west50_2017)
-
-area_dw50_1719 <-
-  raster::area(dw50_1719) # area of 2017 polygon not covered by 2019 polygon
-
-prop_overlap_w50_1719 <- 
-  1-(area_dw50_1719/area_w50_2017)
-
-# Calculate the other way
+# Area of 2019 polygon
 area_w50_2019 <-
   raster::area(west50_2019)
 
-# area of 2019 not covered by 2017
-area_dw50_1917 <-
-  raster::area(dw50_1917)
-prop_overlap_w50_1917 <-
-  1-(area_dw50_1917/area_w50_2019)
+# intersection
+w50_1719_inter <-
+  gIntersection(west50_2017, west50_2019)
+plot(w50_1719_inter, col = "green", add = TRUE)
 
-area_w50_2017 / area_w50_2019
-# 2.564
+
+# calculate area of intersection
+area_w50_1719_int <-
+  raster::area(w50_1719_inter)
+
+prop_overlap_w50_1719 <- 
+  area_w50_1719_int/(area_w50_2017 + area_w50_2019 - area_w50_1719_int)
 
 
 
@@ -284,25 +225,21 @@ plot(de95_1817, col='blue', add=T)
 area_e95_2017 <-
   raster::area(east95_2017)
 
-area_de95_1718 <-
-  raster::area(de95_1718) # area of 2017 polygon not covered by 2018 polygon
-
-prop_overlap_e95_1718 <- 
-  1-(area_de95_1718/area_e95_2017)
-
-# Calculate the other way
 area_e95_2018 <-
   raster::area(east95_2018)
 
-# area of 2018 not covered by 2017
-area_de95_1817 <-
-  raster::area(de95_1817)
-prop_overlap_e95_1817 <-
-  1-(area_de95_1817/area_e95_2018)
+# intersection
+e95_1718_inter <-
+  gIntersection(east95_2017, east95_2018)
+plot(e95_1718_inter, col = "green", add = TRUE)
 
-area_e95_2017 / area_e95_2018
-# 1.325  
 
+# calculate area of intersection
+area_e95_1718_int <-
+  raster::area(e95_1718_inter)
+
+prop_overlap_e95_1718 <- 
+  area_e95_1718_int/(area_e95_2017 + area_e95_2018 - area_e95_1718_int)
 
 
 # calculate overlap between east 95 polygons in 2018 and 2019 -----------
@@ -316,27 +253,22 @@ plot(de95_1819, col='red', add=T)
 plot(de95_1918, col='blue', add=T)
 
 #want to calculate the percent overlap between these two polygons
-area_e95_2018 <-
-  raster::area(east95_2018)
-
-area_de95_1819 <-
-  raster::area(de95_1819) # area of 2018 polygon not covered by 2019 polygon
-
-prop_overlap_e95_1819 <- 
-  1-(area_de95_1819/area_e95_2018)
-
-# Calculate the other way
 area_e95_2019 <-
   raster::area(east95_2019)
 
-# area of 2019 not covered by 2018
-area_de95_1918 <-
-  raster::area(de95_1918)
-prop_overlap_e95_1918 <-
-  1-(area_de95_1918/area_e95_2019)
+# intersection
+e95_1819_inter <-
+  gIntersection(east95_2018, east95_2019)
+plot(e95_1819_inter, col = "green", add = TRUE)
 
-area_e95_2018 / area_e95_2019
-# 1.694
+
+# calculate area of intersection
+area_e95_1819_int <-
+  raster::area(e95_1819_inter)
+
+prop_overlap_e95_1819 <- 
+  area_e95_1819_int/(area_e95_2018 + area_e95_2019 - area_e95_1819_int)
+
 
 
 # calculate overlap between east 95 polygons in 2017 and 2019 -----------
@@ -350,27 +282,19 @@ plot(de95_1719, col='red', add=T)
 plot(de95_1917, col='blue', add=T)
 
 #want to calculate the percent overlap between these two polygons
-area_e95_2017 <-
-  raster::area(east95_2017)
+# intersection
+e95_1719_inter <-
+  gIntersection(east95_2017, east95_2019)
+plot(e95_1719_inter, col = "green", add = TRUE)
 
-area_de95_1719 <-
-  raster::area(de95_1719) # area of 2017 polygon not covered by 2019 polygon
+
+# calculate area of intersection
+area_e95_1719_int <-
+  raster::area(e95_1719_inter)
 
 prop_overlap_e95_1719 <- 
-  1-(area_de95_1719/area_e95_2017)
+  area_e95_1719_int/(area_e95_2017 + area_e95_2019 - area_e95_1719_int)
 
-# Calculate the other way
-area_e95_2019 <-
-  raster::area(east95_2019)
-
-# area of 2019 not covered by 2017
-area_de95_1917 <-
-  raster::area(de95_1917)
-prop_overlap_e95_1917 <-
-  1-(area_de95_1917/area_e95_2019)
-
-area_e95_2017 / area_e95_2019
-# 2.244
 
 
 # calculate overlap between west 95 polygons in 2017 and 2018 -----------
@@ -388,28 +312,24 @@ plot(dw95_1817, col='blue', add=T)
 area_w95_2017 <-
   raster::area(west95_2017)
 
-area_dw95_1718 <-
-  raster::area(dw95_1718) # area of 2017 polygon not covered by 2018 polygon
-
-prop_overlap_w95_1718 <- 
-  1-(area_dw95_1718/area_w95_2017)
-
-# Calculate the other way
 area_w95_2018 <-
   raster::area(west95_2018)
 
-# area of 2018 not covered by 2017
-area_dw95_1817 <-
-  raster::area(dw95_1817)
-prop_overlap_w95_1817 <-
-  1-(area_dw95_1817/area_w95_2018)
-
-area_w95_2017 / area_w95_2018
-# 0.958  
+# intersection
+w95_1718_inter <-
+  gIntersection(west95_2017, west95_2018)
+plot(w95_1718_inter, col = "green", add = TRUE)
 
 
+# calculate area of intersection
+area_w95_1718_int <-
+  raster::area(w95_1718_inter)
 
-# calculate overlap between east 95 polygons in 2018 and 2019 -----------
+prop_overlap_w95_1718 <- 
+  area_w95_1718_int/(area_w95_2017 + area_w95_2018 - area_w95_1718_int)
+
+
+# calculate overlap between west 95 polygons in 2018 and 2019 -----------
 plot(west95_2018)
 plot(west95_2019, add = TRUE)
 
@@ -420,30 +340,25 @@ plot(dw95_1819, col='red', add=T)
 plot(dw95_1918, col='blue', add=T)
 
 #want to calculate the percent overlap between these two polygons
-area_w95_2018 <-
-  raster::area(west95_2018)
-
-area_dw95_1819 <-
-  raster::area(dw95_1819) # area of 2018 polygon not covered by 2019 polygon
-
-prop_overlap_w95_1819 <- 
-  1-(area_dw95_1819/area_w95_2018)
-
-# Calculate the other way
 area_w95_2019 <-
   raster::area(west95_2019)
 
-# area of 2019 not covered by 2018
-area_dw95_1918 <-
-  raster::area(dw95_1918)
-prop_overlap_w95_1918 <-
-  1-(area_dw95_1918/area_w95_2019)
-
-area_w95_2018 / area_w95_2019
-# 2.357
+# intersection
+w95_1819_inter <-
+  gIntersection(west95_2018, west95_2019)
+plot(w95_1819_inter, col = "green", add = TRUE)
 
 
-# calculate overlap between east 95 polygons in 2017 and 2019 -----------
+# calculate area of intersection
+area_w95_1819_int <-
+  raster::area(w95_1819_inter)
+
+prop_overlap_w95_1819 <- 
+  area_w95_1819_int/(area_w95_2018 + area_w95_2019 - area_w95_1819_int)
+
+
+
+# calculate overlap between west 95 polygons in 2017 and 2019 -----------
 plot(west95_2017)
 plot(west95_2019, add = TRUE)
 
@@ -454,65 +369,28 @@ plot(dw95_1719, col='red', add=T)
 plot(dw95_1917, col='blue', add=T)
 
 #want to calculate the percent overlap between these two polygons
-area_w95_2017 <-
-  raster::area(west95_2017)
+# intersection
+w95_1719_inter <-
+  gIntersection(west95_2017, west95_2019)
+plot(w95_1719_inter, col = "green", add = TRUE)
 
-area_dw95_1719 <-
-  raster::area(dw95_1719) # area of 2017 polygon not covered by 2019 polygon
+
+# calculate area of intersection
+area_w95_1719_int <-
+  raster::area(w95_1719_inter)
 
 prop_overlap_w95_1719 <- 
-  1-(area_dw95_1719/area_w95_2017)
+  area_w95_1719_int/(area_w95_2017 + area_w95_2019 - area_w95_1719_int)
 
-# Calculate the other way
-area_w95_2019 <-
-  raster::area(west95_2019)
-
-# area of 2019 not covered by 2017
-area_dw95_1917 <-
-  raster::area(dw95_1917)
-prop_overlap_w95_1917 <-
-  1-(area_dw95_1917/area_w95_2019)
-
-area_w95_2017 / area_w95_2019
-# 2.258
 
 # Make table of overlap values
 
-e50_overlap <- 
-  data.frame(year = 2017:2019,
-             y2017 = round(c(prop_overlap_e50_1718, 1, prop_overlap_e50_1719), 2),
-             y2018 = round(c(1, prop_overlap_e50_1817, prop_overlap_e50_1819), 2), 
-             y2019 = round(c(prop_overlap_e50_1917, prop_overlap_e50_1918, 1), 2))
+prop_overlap <- 
+  data.frame(MoltRegion = c("East 50%", "East 95%", "West 50%", "West 95%"),
+             Overlap1718 = round(c(prop_overlap_e50_1718, prop_overlap_e95_1718, prop_overlap_w50_1718, prop_overlap_w95_1718), 2),
+             Overlap1819 = round(c(prop_overlap_e50_1819, prop_overlap_e95_1819, prop_overlap_w50_1819, prop_overlap_w95_1819), 2),
+             Overlap1719 = round(c(prop_overlap_e50_1719, prop_overlap_e95_1719, prop_overlap_w50_1719, prop_overlap_w95_1719), 2))
 
 # write.table
-write_csv(e50_overlap, "results/east50_overlap.csv")
+write_csv(prop_overlap, "results/prop_overlap.csv")
 
-
-w50_overlap <- 
-  data.frame(year = 2017:2019,
-             y2017 = round(c(prop_overlap_w50_1718, 1, prop_overlap_w50_1719), 2),
-             y2018 = round(c(1, prop_overlap_w50_1817, prop_overlap_w50_1819), 2), 
-             y2019 = round(c(prop_overlap_w50_1917, prop_overlap_w50_1918, 1), 2))
-
-# write.table
-write_csv(w50_overlap, "results/west50_overlap.csv")
-
-
-e95_overlap <- 
-  data.frame(year = 2017:2019,
-             y2017 = c(1, prop_overlap_e95_1817, prop_overlap_e95_1917), 
-             y2018 = c(prop_overlap_e95_1718, 1, prop_overlap_e95_1918),
-             y2019 = c(prop_overlap_e95_1719, prop_overlap_e95_1819, 1))
-
-# write.table
-write_csv(e95_overlap, "results/east95_overlap.csv")
-
-
-w95_overlap <- 
-  data.frame(year = 2017:2019,
-             y2017 = c(1, prop_overlap_w95_1817, prop_overlap_w95_1917), 
-             y2018 = c(prop_overlap_w95_1718, 1, prop_overlap_w95_1918),
-             y2019 = c(prop_overlap_w95_1719, prop_overlap_w95_1819, 1))
-
-# write.table
-write_csv(w50_overlap, "results/west95_overlap.csv")
