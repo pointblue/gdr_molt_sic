@@ -11,9 +11,6 @@ if(length(new.packages)>0) {install.packages(new.packages)}
 # load required packages
 lapply(list.of.packages, library, character.only = TRUE)
 
-# Set working directory
-setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC")
-
 
 # read in MAP layers ####
 # set data frame projection
@@ -21,7 +18,7 @@ proj <- CRS("+proj=longlat +ellps=WGS84 +lon_0=-169 +lon_wrap")
 # proj <- CRS("+proj=laea +lat_0=45.5 +lon_0=-114.125 +no_defs +lon_wrap")
 # proj <-CRS("+proj=stere +lat_0=90 +lat_ts=70 +lon_0=-45 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs" )
 proj_ant <-CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=180 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +datum=WGS84 +units=m +no_defs")
-mpa_t <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
+mpa_t <- spTransform(readOGR("Z:/Informatics/S031/analyses/gdr_nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
 
 # read in and project antarctica coastline
 ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
@@ -32,9 +29,9 @@ ant_clip <- geometry(spTransform(readOGR("GIS/ADDcstpoly_merge_2022-02-22.shp"),
 
 
 # read in and project grid lines for plotting
-polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
+polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/gdr_nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
 # read in and project 2000m isobath
-iso1000 <- iso1000 <- spTransform(readOGR("GIS/1000_m_isobath.shp"),proj_ant)
+iso1000 <- spTransform(readOGR("GIS/1000_m_isobath.shp"),proj_ant)
 
 # load molt contours by year and re-project to SIC projection
 molt_locs_dir<-paste0("data/contours")
@@ -69,20 +66,20 @@ comb_poly <- spTransform(readOGR("data/contours/WinterPolygon2003-05_2017-19.shp
 
 
 # Sea ice rasters
-sic_2017 <- raster("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/sic/ssmi_2017-2019/mean_ant_sic_ssmi_2017_molt_dates.tif")
+sic_2017 <- raster("data/sic/ssmi_2017-2019/mean_ant_sic_ssmi_2017_molt_dates.tif")
 sic_2017_t <- as.data.frame(as(projectRaster(sic_2017,crs=proj_ant),"SpatialPixelsDataFrame"))
   
-sic_2018 <- raster("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/sic/ssmi_2017-2019/mean_ant_sic_ssmi_2018_molt_dates.tif")
+sic_2018 <- raster("data/sic/ssmi_2017-2019/mean_ant_sic_ssmi_2018_molt_dates.tif")
 sic_2018_t <- as.data.frame(as(projectRaster(sic_2018,crs=proj_ant),"SpatialPixelsDataFrame"))
 
   
-sic_2019 <- raster("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/sic/ssmi_2017-2019/mean_ant_sic_ssmi_2019_molt_dates.tif")
+sic_2019 <- raster("data/sic/ssmi_2017-2019/mean_ant_sic_ssmi_2019_molt_dates.tif")
 sic_2019_t <- as.data.frame(as(projectRaster(sic_2019,crs=proj_ant),"SpatialPixelsDataFrame"))
 
-sic_2003 <- raster("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/sic/ssmi_2003_2006/mean_ant_sic_ssmi_2003_molt_dates.tif")
+sic_2003 <- raster("data/sic/ssmi_2003_2006/mean_ant_sic_ssmi_2003_molt_dates.tif")
 sic_2003_t <- as.data.frame(as(projectRaster(sic_2003,crs=proj_ant),"SpatialPixelsDataFrame"))
   
-sic_2006 <- raster("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/sic/ssmi_2003_2006/mean_ant_sic_ssmi_2006_molt_dates.tif")
+sic_2006 <- raster("data/sic/ssmi_2003_2006/mean_ant_sic_ssmi_2006_molt_dates.tif")
 sic_2006_t <- as.data.frame(as(projectRaster(sic_2006,crs=proj_ant),"SpatialPixelsDataFrame"))
 
 
@@ -119,7 +116,7 @@ ew_2017<-
   geom_polygon(
     data = ant,
     aes(x = long, y = lat, group = group),
-    fill = "grey90",
+    fill = "grey70",
     # alpha = 0.3,
     col = "grey50")+
   # lat lon grid
@@ -173,7 +170,7 @@ ew_2018<-
   geom_polygon(
     data = ant,
     aes(x = long, y = lat, group = group),
-    fill = "grey90",
+    fill = "grey70",
     # alpha = 0.3,
     col = "grey50")+
   # lat lon grid
@@ -227,7 +224,7 @@ ew_2019<-
   geom_polygon(
     data = ant,
     aes(x = long, y = lat, group = group),
-    fill = "grey90",
+    fill = "grey70",
     # alpha = 0.3,
     col = "grey50")+
   # lat lon grid
@@ -280,7 +277,7 @@ ew_2003<-
   geom_polygon(
     data = ant,
     aes(x = long, y = lat, group = group),
-    fill = "grey90",
+    fill = "grey70",
     # alpha = 0.3,
     col = "grey50")+
   # lat lon grid
@@ -334,7 +331,7 @@ ew_2006<-
   geom_polygon(
     data = ant,
     aes(x = long, y = lat, group = group),
-    fill = "grey90",
+    fill = "grey70",
     # alpha = 0.3,
     col = "grey50")+
   # lat lon grid
@@ -377,7 +374,7 @@ ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
   plot_layout(widths = 1,nrow = 3)
 dev.off()
 
-jpeg("figs/SIC_ssmi_molt_xyr_maps.jpg",height=11,width=8.5,unit="in",res=300)
+jpeg("figs/revision1/SIC_ssmi_molt_xyr_maps.jpg",height=11,width=8.5,unit="in",res=300)
 ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
   plot_layout(widths = 1,nrow = 3)
 dev.off()

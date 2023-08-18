@@ -86,7 +86,7 @@ p95 <-
   geom_point()+
   geom_line()+
   # ggstar::geom_star(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=2, show.legend = FALSE)+
-  geom_point(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=3, shape = "triangle", show.legend = FALSE)+
+  # geom_point(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=3, shape = "triangle", show.legend = FALSE)+
   geom_smooth(se = TRUE, method = lm)+
   scale_color_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined\nNonbreeding\nRange" = col3))+
   scale_fill_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined\nNonbreeding\nRange" = col3))+
@@ -127,7 +127,9 @@ summ_df <-sic%>%
   pivot_longer(cols = contains("sic"), names_to = "contour",values_to = "sic")%>%
   mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
   group_by(Contour)%>%
-  summarise(mean=mean(sic),se=sd(sic)/sqrt(n()))
+  summarise(mean=mean(sic),se=sd(sic)/sqrt(n())) %>% 
+  mutate(symbol = "circle")
+  
 
 # summarise data from study
 summ_1719 <- sic%>%
@@ -136,25 +138,33 @@ summ_1719 <- sic%>%
   pivot_longer(cols = contains("sic"),names_to = "contour",values_to = "sic")%>%
   mutate(Contour = factor(contour, labels = c("East 50%","East 95%","Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
   group_by(Contour)%>%
-  summarise(mean=mean(sic),se=sd(sic)/sqrt(n()))
+  summarise(mean=mean(sic),se=sd(sic)/sqrt(n())) %>% 
+  mutate(symbol = "triangle")
 
 p_point <-ggplot()+
-  geom_point(data=summ_df,aes(Contour,mean, col = Contour), size = 4)+
+  geom_point(data=summ_df,aes(Contour,mean, col = Contour, shape = symbol), size = 4) +
   geom_errorbar(data=summ_df,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col=Contour),width=0.06, size=0.8)+
 
   geom_errorbar(data=summ_1719,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col = Contour),width=0.05, size=0.8)+
   # ggstar::geom_star(data = summ_1719,aes(Contour, mean, col = Contour),size=4) + 
-  geom_point (data=summ_1719,aes(Contour,mean,col=Contour), size=4, shape = "triangle")+
-  
-  scale_color_manual(name="Study mean", values=c("East 50%" = "#9d8900", "East 95%"= "gold","Combined\nNonbreeding\nRange" = "#005f59", "West 50%" = "#50005a", "West 95%" = col2))+
-  scale_fill_manual(name="Long-term mean", values=c("East 50%" = col1, "East 95%"= col4,  "Combined\nNonbreeding\nRange" = col3,"West 50%" = col2, "West 95%" = col5))+
+  geom_point (data=summ_1719,aes(Contour,mean,col=Contour,
+                                 shape = symbol), size=4)+
+  scale_color_manual(name="Study mean", values=c("East 50%" = "#9d8900", 
+                                                 "East 95%"= "gold",
+                                                 "Combined\nNonbreeding\nRange" = "#005f59", 
+                                                 "West 50%" = "#50005a", 
+                                                 "West 95%" = col2), 
+                     guide =  "none") +
+  scale_fill_manual(name="Long-term mean", values=c("East 50%" = col1, "East 95%"= col4,  "Combined\nNonbreeding\nRange" = col3,"West 50%" = col2, "West 95%" = col5),
+                    guide = "none")+
+  scale_shape_manual(name = "", values = c("circle", "triangle"), labels = c("Long-term mean (1980-2021)", "This study (2017-2019)")) +
   peng_theme()+
-  theme(legend.position="")+
+  theme(legend.position = c(0.8, 0.9))+
   ylab("Sea Ice Concentration (%)")+
   xlab("Area")+
   geom_text(aes(label="A",x = "East 50%", y = 52),color="black",size=6, nudge_x = -0.4)
 
-print(p_point)
+p_point
 
 
 # pdf("figs/SIC_mean_x_contour_bar.pdf", width = 7.5,height = 5)
@@ -171,7 +181,7 @@ print(p_point)
 # gridExtra::grid.arrange(p_point,p95)
 # dev.off()
 
-jpeg("figs/SIC_mean_point_and_trend_comb.jpg", 
+jpeg("figs/Fig3_rev1.jpg", 
      width = 7.5,height = 10, units = "in", res=300)
 gridExtra::grid.arrange(p_point,p95)
 dev.off()
