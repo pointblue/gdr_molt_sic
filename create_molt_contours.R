@@ -110,4 +110,10 @@ royds_all <- plot_mlocs(data=data,colony=c("ROYD"),seasons=c(2016:2018),grid_siz
 ggarrange(royds_all,croz_all,ncol=2,nrow=1,common.legend = TRUE,legend = "right")
 
 
-
+# calculate the number of birds that have molt locations from multiple years
+molt_locs %>% 
+  group_by(bird_id, season) %>% 
+  tally() %>% 
+  group_by(bird_id) %>% 
+  tally() %>% 
+  filter(n>2)

@@ -38,19 +38,19 @@ peng_theme <- function() {
   theme_classic() %+replace%
     theme(
       axis.title.y = element_text(
-        size = 12,
+        size = 10,
         margin = margin(r = 15),
         angle = 90
       ),
-      axis.title.x = element_text(size = 12, margin = margin(
-        t = 15,
+      axis.title.x = element_text(size = 10, margin = margin(
+        t = 10,
         r = 0,
         b = 0,
         l = 0
       )),
-      axis.text = element_text(size = 10),
-      legend.text = element_text(size = 10),
-      legend.title = element_text(size = 14)
+      axis.text = element_text(size = 7),
+      legend.text = element_text(size = 6),
+      legend.title = element_text(size = 7)
     )
 }
 
@@ -81,9 +81,11 @@ dat <- sic%>%
   pivot_longer(cols=contains("sic"), names_to="contour",values_to="sic")%>%
   mutate(Contour = factor(contour, labels = c("East 50%","East 95%", "Combined\nNonbreeding\nRange", "West 50%", "West 95%")))%>%
   filter(Contour%in%c("East 95%","Combined\nNonbreeding\nRange", "West 95%"))
+
+
 p95 <- 
   ggplot(data = dat,aes(year,sic,col=Contour,fill=Contour, group=Contour))+
-  geom_point()+
+  geom_point(size = 0.8)+
   geom_line()+
   # ggstar::geom_star(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=2, show.legend = FALSE)+
   # geom_point(data = filter(dat, year %in% c(2017:2019)),aes(year,sic,col=Contour,fill=Contour, group=Contour),size=3, shape = "triangle", show.legend = FALSE)+
@@ -91,7 +93,8 @@ p95 <-
   scale_color_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined\nNonbreeding\nRange" = col3))+
   scale_fill_manual(name="", values=c("East 95%"= col1, "West 95%" = col2, "Combined\nNonbreeding\nRange" = col3))+
   peng_theme()+
-  theme(legend.position = c(0.9,0.9))+
+  theme(legend.position = c(0.91,0.91))+
+  theme(legend.box.background = element_blank()) +
   ylab("Sea Ice Concentration (%)")+
   xlab("Year")+
   geom_text(aes(label="B",x = 1980, y = 50),color="black",size=6)
@@ -99,13 +102,13 @@ p95 <-
 
 print(p95)
 
-pdf("figs/SIC_molt95_trend_linear_noeq.pdf", width = 7.5,height = 5)
-print(p95)
-dev.off()
-
-jpeg("figs/SIC_molt95_trend_linear_noeq.jpg", width = 7.5,height = 5, units="in", res=300)
-     print(p95)
-     dev.off()
+# pdf("figs/SIC_molt95_trend_linear_noeq.pdf", width = 7.5,height = 5)
+# print(p95)
+# dev.off()
+# 
+# jpeg("figs/SIC_molt95_trend_linear_noeq.jpg", width = 7.5,height = 5, units="in", res=300)
+#      print(p95)
+#      dev.off()
 
 #-------------------------------------------------------------------------------------#
 ##Calculate summary statistics for ssmi time series####
@@ -142,13 +145,13 @@ summ_1719 <- sic%>%
   mutate(symbol = "triangle")
 
 p_point <-ggplot()+
-  geom_point(data=summ_df,aes(Contour,mean, col = Contour, shape = symbol), size = 4) +
-  geom_errorbar(data=summ_df,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col=Contour),width=0.06, size=0.8)+
+  geom_point(data=summ_df,aes(Contour,mean, col = Contour, shape = symbol), size = 2) +
+  geom_errorbar(data=summ_df,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col=Contour),width=0.08, size=0.6)+
 
-  geom_errorbar(data=summ_1719,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col = Contour),width=0.05, size=0.8)+
+  geom_errorbar(data=summ_1719,aes(Contour,mean,ymin=mean-se,ymax=mean+se,col = Contour),width=0.08, size=0.6)+
   # ggstar::geom_star(data = summ_1719,aes(Contour, mean, col = Contour),size=4) + 
   geom_point (data=summ_1719,aes(Contour,mean,col=Contour,
-                                 shape = symbol), size=4)+
+                                 shape = symbol), size=2)+
   scale_color_manual(name="Study mean", values=c("East 50%" = "#9d8900", 
                                                  "East 95%"= "gold",
                                                  "Combined\nNonbreeding\nRange" = "#005f59", 
@@ -157,7 +160,7 @@ p_point <-ggplot()+
                      guide =  "none") +
   scale_fill_manual(name="Long-term mean", values=c("East 50%" = col1, "East 95%"= col4,  "Combined\nNonbreeding\nRange" = col3,"West 50%" = col2, "West 95%" = col5),
                     guide = "none")+
-  scale_shape_manual(name = "", values = c("circle", "triangle"), labels = c("Long-term mean (1980-2021)", "This study (2017-2019)")) +
+  scale_shape_manual(name = "", values = c("circle", "triangle"), labels = c("Long-term mean\n(1980-2021)", "This study\n(2017-2019)")) +
   peng_theme()+
   theme(legend.position = c(0.8, 0.9))+
   ylab("Sea Ice Concentration (%)")+
@@ -177,9 +180,9 @@ p_point
                      
 # 
 # # plot barplot and trends together
-# pdf("figs/SIC_mean_bar_and_trend_comb.pdf", width = 7.5,height = 10)
-# gridExtra::grid.arrange(p_point,p95)
-# dev.off()
+pdf("figs/revision1/Fig3_rev1_v13.pdf", width = 4.5 ,height = 6)
+gridExtra::grid.arrange(p_point,p95)
+dev.off()
 
 jpeg("figs/Fig3_rev1.jpg", 
      width = 7.5,height = 10, units = "in", res=300)

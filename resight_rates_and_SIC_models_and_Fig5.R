@@ -45,21 +45,22 @@ peng_theme <- function() {
   theme_classic() %+replace%
     theme(
       axis.title.y = element_text(
-        size = 12,
+        size = 10,
         margin = margin(r = 15),
         angle = 90
       ),
-      axis.title = element_text(size = 14, margin = margin(
+      axis.title = element_text(size = 10, margin = margin(
         t = 15,
         r = 0,
         b = 0,
         l = 0
       )),
-      axis.text = element_text(size = 10),
-      legend.text = element_text(size = 12),
-      legend.title = element_text(size = 16)
+      axis.text = element_text(size = 8),
+      legend.text = element_text(size = 7),
+      legend.title = element_text(size = 9)
     )
 }
+
 
 # plot time series
 sic_rs_df_g2000 %>%
@@ -351,7 +352,7 @@ cAIC_tab <-
 
 
 # write table
-write_csv(cAIC_tab, "results/croz_SIC_rr_model_tab_v2023-08-17.csv")
+# write_csv(cAIC_tab, "results/croz_SIC_rr_model_tab_v2023-08-17.csv")
 
 
 # results from top model
@@ -550,7 +551,7 @@ rAIC_tab <-
 sjPlot::tab_model(m_w95_r)
 
 # # write table
-write_csv(rAIC_tab, "results/royd_SIC_rr_model_tab_v2023-08-17.csv")
+# write_csv(rAIC_tab, "results/royd_SIC_rr_model_tab_v2023-08-17.csv")
 # 
 # 
 # broom::tidy(m_e95_r) %>%
@@ -559,6 +560,19 @@ write_csv(rAIC_tab, "results/royd_SIC_rr_model_tab_v2023-08-17.csv")
 
 
 # Plot top models ####
+
+# custom_theme <-
+#   function(){
+#     theme(title = element_text(size = 10),
+#           axis.title = element_text(size = 14),
+#           axis.text = element_text(size = 8),
+#           axis.text.x = element_text(angle = 90),
+#           legend.title = element_text(size = 9),
+#           legend.text = element_text(size = 7),
+#           legend.spacing.y = unit(0, "mm"),
+#           plot.margin = unit(c(0.2,0.2,0.2,0.2), "cm"))
+#   }
+
 p_top_c <-
 sic_rs_df_g2000 %>%
   filter(colony == "CROZ")%>%
@@ -584,12 +598,7 @@ sic_rs_df_g2000 %>%
   #scale_x_continuous(breaks=seq(2003,2021,by=2)) +
   ylab("Banded Bird Return Rate (%)") +
   xlab("SIC in East 95% Molt Region (%)") +
-  peng_theme() +
-  theme(
-    strip.background = element_blank(),
-    strip.text = element_text(size = 14),
-    axis.title.y = element_text(size = 14)
-  ) +
+ peng_theme() +
   scale_color_manual(name = "", values = cols[1]) +
   scale_fill_manual(name = "", values = cols[1]) +
   ylim(35, 85) + 
@@ -637,37 +646,32 @@ p_top_r <-
   ylab("") +
   xlab("SIC in West 95% Molt Region (%)") +
   peng_theme() +
-  theme(
-    strip.background = element_blank(),
-    strip.text = element_text(size = 14),
-    axis.title.y = element_text(size = 14)
-  ) +
   ylim(35, 85) +
   xlim(0,50) +
-  ggtitle("(B)") +
-  ggpmisc::stat_poly_eq(
-    formula = y  ~  x,
-    aes(label = paste(
-      ..eq.label..,
-      ..adj.rr.label.., after_stat(p.value.label), sep = " ~  ~  ~  ~  ~ "
-    )),
-    parse = TRUE,
-    p.digits = 2,
-    rr.digits = 2,
-    size = 3,
-    # npcx = 0.85,
-    # npcy = c(0.12, 0.05),
-    small.p = TRUE
-  )
+  ggtitle("(B)") 
+  # ggpmisc::stat_poly_eq(
+  #   formula = y  ~  x,
+  #   aes(label = paste(
+  #     ..eq.label..,
+  #     ..adj.rr.label.., after_stat(p.value.label), sep = " ~  ~  ~  ~  ~ "
+  # #   )),
+  #   parse = TRUE,
+  #   p.digits = 2,
+  #   rr.digits = 2,
+  #   size = 3,
+  #   # npcx = 0.85,
+  #   # npcy = c(0.12, 0.05),
+  #   small.p = TRUE
+  # )
 print(p_top_r)
 
 
 gridExtra::grid.arrange(p_top_c, p_top_r, nrow = 1)
 
-pdf("figs/cr_rr_m95_regression.pdf",
-    width = 7.5,
-    height = 4)
-print(p_top)
+pdf("figs/revision1/Fig5_rr_SIC_v5.pdf",
+    width = 7,
+    height = 3)
+gridExtra::grid.arrange(p_top_c, p_top_r, nrow = 1)
 dev.off()
 
 

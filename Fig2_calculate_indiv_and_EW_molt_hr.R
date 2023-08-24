@@ -11,14 +11,12 @@ if(length(new.packages)>0) {install.packages(new.packages)}
 lapply(list.of.packages, library, character.only = TRUE)
 
 
-setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC")
-
 # read in MAP layers if want to plot##
 # set data frame projection
 proj <- CRS("+proj=longlat +ellps=WGS84 +lon_0=-169 +lon_wrap")
 proj_ant <-CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=180 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs")
 # MPA boundaries
-mpa_t <- spTransform(readOGR("../nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
+mpa_t <- spTransform(readOGR("GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
 
 # read in and project antarctica coastline
 ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
@@ -27,7 +25,7 @@ ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
 ant_clip <- geometry(spTransform(readOGR("GIS/ADDcstpoly_merge_2022-02-22.shp"),proj_ant))
 # read in and project grid lines for plotting
 # polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
-polar_grid <-spTransform(readOGR("../nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
+polar_grid <-spTransform(readOGR("GIS/latlong_stereo.shp"), proj_ant)
 # read in and project 1000m isobath
 iso1000 <- iso1000 <- spTransform(readOGR("GIS/1000_m_isobath.shp"),proj_ant)
 
@@ -114,7 +112,7 @@ ggplot(aes(year,frac_east,fill=br_col))+
   scale_fill_manual(values=c(col1,col2),labels = c("Crozier","Royds"))+
   guides(fill=guide_legend(title="Colony"))+
   theme_classic()+
-  labs(x="Year", y="Fraction of individuals that\n molted East of 180°")+
+  labs(x="Year", y="Fraction of individuals that\n molted East of 180?")+
   geom_text(aes(y=0.06,label = c("47/53", "9/12","58/59","10/17","37/37","13/16")),position=position_dodge(0.9),size=3)+
   geom_text(aes(y=0.95,label=c("","","","*","","*")), size=8,position=position_dodge(0.9))
 
