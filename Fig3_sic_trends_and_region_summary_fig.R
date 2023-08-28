@@ -15,16 +15,6 @@ sic <- read_csv("data/sic_summary_ssmi_1980-2021_v2023-02-22.csv")
 # Define theme ####
 
 # color palette
-col.p <- c("#006C84", "#5EA8A7", "#B2DBD5", "white")
-# turquoise to orange
-col.to <- c("#006C84", "#B2DBD5", "#e6ceb5", "#ff8324", "#f73c2f")
-# 
-# # pb 2 color palette,
-# col.pb <- c("#BFD730", "#F7941D", "#666666", "#A7A9AC")
-# 
-# pb_col1 <- "#005BAA"
-# pb_col2 <- "#4495D1"
-
 col1 <- "#FDE725FF" #yellow
 col2 <- "#9856c8" # light purple
 col3 <- "#21908CFF" # turquoise

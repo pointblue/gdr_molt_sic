@@ -96,11 +96,11 @@ custom_theme <-
   theme(title = element_text(size = 10),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 8),
-        axis.text.x = element_text(angle = 90),
+        axis.text.x = element_text(angle = 0),
         legend.title = element_text(size = 9),
         legend.text = element_text(size = 7),
-        legend.spacing.y = unit(0, "mm"),
-        plot.margin = unit(c(0.2,0.2,0.2,0.2), "cm"))
+        legend.spacing.y = unit(1, "mm"),
+        plot.margin = unit(c(0.1,0.2,0.1,0.2), "cm"))
   }
   
 
@@ -409,9 +409,9 @@ ew_2006_leg<-
 
 # print(ew_2006_leg)
 leg <- ggpubr::get_legend(ew_2006_leg)
-leg$layout[1,] <- c(2,5,3,5,2, "off", "guides")
+leg$layout[1,] <- c(5,4,2,4,2, "off", "guides")
 leg$layout[2,] <-
-  c(2,3,3,3,1,"off","guides")
+  c(5,1,1,1,1,"off","guides")
 
 plot(leg)
 
@@ -421,12 +421,12 @@ plot(leg)
 # ggarrange(ew_2003, ew_2006, ew_2017,ew_2018,ew_2019,common.legend = TRUE, ncol=2,nrow=3)
 # using patchwork package for multi-panel layout
 
-pdf("figs/revision1/Fig4_SIC_ssmi_molt_xyr_maps_v13.pdf",height=9,width= 7)
+pdf("figs/revision1/Fig4_SIC_ssmi_molt_xyr_maps_v27.pdf",height=7.75,width= 7)
 ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+ 
   plot_layout(widths = 1,nrow = 3)
 dev.off()
 
-jpeg("figs/revision1/Fig4_SIC_ssmi_molt_xyr_maps.jpg",height=11,width=8.5,unit="in",res=300)
-ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
-  plot_layout(widths = 1,nrow = 3)
-dev.off()
+# jpeg("figs/revision1/Fig4_SIC_ssmi_molt_xyr_maps.jpg",height=11,width=8.5,unit="in",res=300)
+# ew_2003 + ew_2006 + ew_2017 + ew_2018 + ew_2019+ leg+
+#   plot_layout(widths = 1,nrow = 3)
+# dev.off()
