@@ -16,41 +16,22 @@ library(sqldf)
 
 
 #set the working directory####
-setwd("Z:/Informatics/S031/S0312122/croz2122/bandsearch")
 
 #load functions specific to bandsearch tasks####
-source("bandsearch_functions.R")
+source("code/bandsearch_functions.R")
 
 #get the tables you need####
 #rsfile <- read.dbf("resight21.dbf")%>%
 #  mutate(STATUS=as.character(STATUS), STATUS=ifelse(STATUS=="BRB"|STATUS=="BR1","BR",STATUS))
-bandinv <- read.dbf("../band/band_inv.dbf")
+bandinv <- read.dbf("data/band_inv.dbf")
 #rsfile <- rsfile[,1:25] #gets rid of all the "x" columns introduced by read.dbf
 bandinv <- bandinv[, 1:7]
-allresight <- read.dbf("allresight.dbf")
+allresight <- read.dbf("data/allresight.dbf")
 allresight <- allresight[, 1:26]
 gdr_birds_df <-
   read.csv(
-    "Z:/Informatics/S031/analyses/GDR/data/croz_royds_gdr_depl_all_v2021-08-27.csv"
+    "data/croz_royds_gdr_depl_all_v2021-08-27.csv"
   )
-
-# table with breeding status
-breed_stat <- 
-  read_csv(r'(Z:\Informatics\S031\analyses\AdultSurvivorship\ResightAnalysis_2021\export_for_kate_090721.csv)',
-           col_types = "cnccccccccccccccccccccccccccccccccnnc") %>%
-  pivot_longer(cols = starts_with("rs"), 
-               names_to = "season",
-               values_to = "status") %>%
-  mutate(stat_char = substr(status,3,3),
-         bandnumb = as.numeric(bandnumb),
-         seas_marked = as.numeric(seas),
-         season_yr = substr(season,3,4)) %>%
-  mutate(season_yr = as.numeric(ifelse(season_yr > 50, 
-                                       paste0(19, season_yr),
-                                       paste0(20, season_yr)))) %>%
-  select(bandnumb,season_yr, br_status = stat_char)
-
-
 
 
 
@@ -78,11 +59,6 @@ allrs <- filter(
 )
 
 #now get rid of all records of individuals for which the band was ever reported LOST or REMOVED
-#slct<-paste0("select * from allrs where bandnumb not in
-#    (select distinct bandnumb from allrs where substring(STATUS,1,5)='REMOV'
-#      or substring(STATUS,1,4)='LOST'
-#      )")
-
 slct <- paste0(
   "select * from allrs where bandnumb not in
     (select distinct bandnumb from allrs where substring(STATUS,1,5)='REMOV'
@@ -91,16 +67,6 @@ slct <- paste0(
 )
 
 allrs <- sqldf(slct)
-# rm_bands <-
-# allrs_filt <- allrs%>%
-#   filter(
-
-#this removed 528 individuals; total here is 150309
-#sort(unique(allrs$BANDSEEN))
-
-#summary(allrs)
-#summary(allrs$BANDNUMB)
-#summary(allrs$season_yr)
 
 #restrict to only birds banded as chicks (i.e. exclude BREF, WB)
 slct <- paste0(
@@ -109,23 +75,11 @@ slct <- paste0(
 )
 allrs_type <- sqldf(slct)
 allrs <- filter(allrs_type, allrs_type$TYPE == "CHIC")
-#137563 total here on 11/13/2021
 
 #exclude birds which had GDR's attached:
 slct <-
   "select allrs.* from allrs where bandnumb not in (select distinct bird_id from gdr_birds_df)"
 allrs <- sqldf(slct)
-#125889 now - note that all GDR birds get removed from the ENTIRE study
-
-
-# now exclude pre-breeders
-allrs_br <-
-  allrs %>%
-  left_join(breed_stat, 
-            by = c("BANDNUMB" = "bandnumb",
-                   "season_yr")) %>%
-  filter(br_status != "P")
-
 
 
 seas_list <- sort(unique(allrs$season_yr))
@@ -143,7 +97,7 @@ resight_summary_df <-
   )
 
 for (col in col_list) {
-  allrs_subset <- filter(allrs_br, COLONY == col)
+  allrs_subset <- filter(allrs, COLONY == col)
   
   for (seas in seas_list) {
     seas <- as.character(seas)
@@ -215,6 +169,6 @@ resight_summary_df$prop_br_resight <-
 
 # write_csv(
 #   resight_summary_df,
-#   "Z:/Informatics/S031/analyses/gdr_molt_sic/data/resight_summary_no_PB.csv"
+#   "data/resight_summary_thru_2019.csv"
 # )
 

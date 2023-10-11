@@ -914,19 +914,6 @@ sic_rs_df_g2000 %>%
                           ..adj.rr.label.., after_stat(p.value.label), sep = " ~  ~  ~  ~  ~ "
                         )),
                         parse = TRUE)
-#
-# #model the fit for breeders only:
-# #rs_sic_fit<-lm(data=sic_rs_df,prop_br_resight ~ total_hr_molt_sic)
-# sic_rs_df_g2000<-filter(sic_rs_df,season>=2003) #Note lack of breeding status info before 2003
-# rs_sic_fit<-lm(data=sic_rs_df_g2000,prop_br_resight ~ croz_hr_molt_sic+colony)
-# summary(rs_sic_fit)
-#
-#
-# #compare with resighting matrix values:
-# #parker_rs_table<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/return_rate.csv")
-# rs_matrix_df<-read.csv("C:/gballard/S031/analyses/AdultSurvivorship/ResightAnalysis_2021/export_for_kate_090721.csv")
-# filter(rs_matrix_df,substr(rs19,1,2)=="CR", type=="CHIC")%>%
-#   count(rs19)
 
 
 # resight rate time series
@@ -948,22 +935,4 @@ resight_summary_df %>%
                         parse = TRUE)
   
   
-
-
-# check against survival estimates from sex specific survival model
-s <-
-  read_csv("data/ADPE surv sex-related for Grant.csv")
-
-dat <-
-  c_dat %>%
-  mutate(Year = season - 1) %>% 
-  left_join(s)
-m_s_c <- 
-  lm(pracma::detrend(dat$Crozier) ~ pracma::detrend(dat$east_molt50_sic))
-
-summary(m_s_c)
-plot(dat$Crozier, dat$east_molt95_sic)
-
-cor.test(dat$Crozier, dat$east_molt95_sic)
-cor.test(dat$Crozier, dat$prop_resight)
 

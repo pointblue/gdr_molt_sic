@@ -19,7 +19,7 @@ proj <- CRS("+proj=longlat +ellps=WGS84 +lon_0=-169 +lon_wrap")
 # proj <- CRS("+proj=laea +lat_0=45.5 +lon_0=-114.125 +no_defs +lon_wrap")
 # proj <-CRS("+proj=stere +lat_0=90 +lat_ts=70 +lon_0=-45 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +units=m +no_defs" )
 proj_ant <-CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=180 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +datum=WGS84 +units=m +no_defs")
-mpa_t <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
+mpa_t <- spTransform(readOGR("GIS/mpa-shapefile-EPSG102020.shp"),proj_ant)
 
 # read in and project antarctica coastline
 ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
@@ -29,12 +29,12 @@ ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
 ant_clip <- geometry(spTransform(readOGR("GIS/ADDcstpoly_merge_2022-02-22.shp"),proj_ant))
 
 # read in and project grid lines for plotting
-polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
+polar_grid <-spTransform(readOGR("GIS/latlong_stereo.shp"), proj_ant)
 # read in and project 2000m isobath
 iso1000 <- iso1000 <- spTransform(readOGR("GIS/1000_m_isobath.shp"),proj_ant)
 # t<-readOGR("GIS/full_2000_m_isobath.shp")
 # read in and project ACC boundary
-front <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/acc_fronts.shp"),proj_ant)
+front <-spTransform(readOGR("ging/GIS/acc_fronts.shp"),proj_ant)
 
 
 

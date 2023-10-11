@@ -6,11 +6,11 @@ library(tidyverse)
 
 # Map using 500 chains
 # read in gdr deploy file
-gdr_depl <- read_csv("Z:/Informatics/S031/analyses/GDR/data/croz_royds_gdr_depl_all_v2021-08-27.csv")
+gdr_depl <- read_csv("data/croz_royds_gdr_depl_all_v2021-08-27.csv")
 # read in table with last 500 chains
-locs500 <- read_csv("Z:/Informatics/S031/analyses/GDR/data/gdr_locs_final_500_all_yr_v2021-06-03.csv")
+locs500 <- read_csv("data/gdr_locs_final_500_all_yr_v2021-06-03.csv")
 # Table with molt and arrival dates estimated from GDR data
-molt_tab<- read_csv("Z:/Informatics/S031/analyses/GDR/data/gdr_molt_arrival_dates_v2022-02-11.csv")
+molt_tab<- read_csv("data/gdr_molt_dates_v2022-02-11.csv")
 
 
 # join molt dates to gdr_depl
@@ -71,7 +71,7 @@ few_locs <- molt_locs%>%
   left_join(select(molt_tab,season, bird_id,start_molt,end_molt))%>%
   mutate(end_doy=as.numeric(format(end_molt, "%j")))# 15 birds with fewer than 5 (2500) locations estimated during molt
 summary(few_locs$end_doy)
-write_csv(few_locs, "Z:/Informatics/S031/analyses/gdr_molt_SIC/data/few_molt_locs.csv")
+write_csv(few_locs, "data/few_molt_locs.csv")
 
 mlocs <- mdays%>%
   filter(n>5)%>%
@@ -79,5 +79,4 @@ mlocs <- mdays%>%
 summary(mlocs$end_molt)
 
 
-
-write_csv(molt_locs, paste0("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/molt_locs500_",Sys.Date(),".csv"))
+write_csv(molt_locs, paste0("data/molt_locs500_",Sys.Date(),".csv"))

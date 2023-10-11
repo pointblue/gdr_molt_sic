@@ -9,7 +9,6 @@ library(viridis)
 
 # load data ####
 sic <- read_csv("data/sic_summary_ssmi_1980-2021_v2023-02-22.csv")
-# sic_1719<-read_csv("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/ew_molt_area_sic_summary.csv")
 
 
 # Define theme ####

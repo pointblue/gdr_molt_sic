@@ -10,7 +10,7 @@ library(gridExtra)
 
 dive <-
   fread(
-    "Z:/Informatics/S031/analyses/GDR/data/diveStats/GDR_diveStats_all/diveStats_all_filt.csv"
+    "data/diveStats_ds_all_filt.csv"
   )
 
 # # GDR deploy file
@@ -20,7 +20,7 @@ dive <-
 #   )
 
 molt_tab <-
-  read_csv("Z:/Informatics/S031/analyses/GDR/data/gdr_molt_arrival_dates_v2022-02-10.csv")
+  read_csv("gdr_molt_dates_v2022-02-10.csv")
 
 bird_ids <- unique(dive$file_id)
 plts <- list()

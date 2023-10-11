@@ -3,7 +3,7 @@
 library(tidyverse)
 
 
-molt_locs <-data.table::fread("Z:/Informatics/S031/analyses/gdr_molt_SIC/data/molt_locs500_2022-02-15.csv")
+molt_locs <-data.table::fread("data/molt_locs500_2022-02-15.csv")
 
 # summarize molt dates of birds that are included in molt locs table
 molt_locs%>%
@@ -23,7 +23,7 @@ molt_locs%>%
 
 # Table with molt and arrival dates estimated from GDR data
 molt_tab <-
-  read_csv("Z:/Informatics/S031/analyses/GDR/data/gdr_molt_arrival_dates_v2022-02-11.csv")%>%
+  read_csv("data/gdr_molt_dates_v2022-02-11.csv")%>%
   mutate(mstart_doy = as.numeric(format(start_molt,"%j")), mend_doy = as.numeric(format(end_molt,"%j")))
 
 # summarise length of molt and SE
@@ -44,7 +44,7 @@ molt_tab %>%
 
 
 # table with info on deployed individuals
-gdr_depl <- read_csv(r"(Z:\Informatics\S031\analyses\gdr_molt_SIC\data\croz_royds_gdr_depl_all_v2021-08-27.csv)")
+gdr_depl <- read_csv("data\croz_royds_gdr_depl_all_v2021-08-27.csv")
 
 
 # individuals with molt dates that don't have locations
@@ -57,15 +57,12 @@ missing_locs <- anti_join(molt_tab,molt_locs_ids) %>%
   left_join(gdr_depl)
 
 
-
-
 summary(missing_locs)
 
 filter(molt_locs, bird_id==3698)
 
 # confirm birds missing from locs500 table
-locs500 <- data.table::fread(
-  "Z:/Informatics/S031/analyses/GDR/data/gdr_locs_final_500_all_yr_v2021-06-03.csv")
+locs500 <- data.table::fread("data/gdr_locs_final_500_all_yr_v2021-06-03.csv")
 
 # summarise date of first locations for each bird
 first_loc_dates <- locs500%>%

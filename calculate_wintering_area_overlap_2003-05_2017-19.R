@@ -5,18 +5,9 @@
 #original version: 11/17/2021
 #last update: 11/21/2021
 
-#Clean up memory as needed
-#gc()
-## Specify lib paths to the Antarctica Project R packages library####
-#.libPaths('C:/R/libs') 
-
-##Specify the directory where analyses are stored for this (depends on what network you are on)
-#analyses_dir<-"Z:/Informatics/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/"
-analyses_dir<-"Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/"
 
 ##Specify the GIS directory you are working from (depends on what network you are on)
-#GIS_dir<-"V:/Project/Terrestrial/adpe/"
-GIS_dir<-"C:/adpe/"
+GIS_dir<-"GIS"
 
 ##Load  any needed libraries####
 library(rgdal) #for readOGR, spTransform
@@ -42,7 +33,7 @@ the_crs <-"+proj=lcc +lat_1=-76.666667 +lat_2=-79.333333 +lat_0=-78.021171 +lon_
 #-----------------------------------------------------#
 #get the Antarcic coastline for clipping, if needed ####
 #-----------------------------------------------------#
-coastline<-readOGR("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/GIS/ADDcstpolyline_edit_2021_11_23.shp")
+coastline<-readOGR("GIS/ADDcstpolyline_edit_2021_11_23.shp")
 coastline<-spTransform(coastline, the_crs)
 
 #-------------------------------------------------------------------------------------------------#
@@ -59,7 +50,7 @@ coastline<-spTransform(coastline, the_crs)
 #documentation for numbers of individuals per season x colony for 2017-2019 polygon calculation####
 #-------------------------------------------------------------------------------------------------#
 #This is based on these individuals (from map_all_nonbreed_locs.R; WARNING: 3.8GB):
- locs500<- fread("Y:/S031/analyses/GDR/data/gdr_locs_final_500_all_yr_v2021-06-03.csv",nThread=8)%>%
+ locs500<- fread("data/gdr_locs_final_500_all_yr_v2021-06-03.csv",nThread=8)%>%
     mutate(doy=as.numeric(format(time1,"%j")))%>%
     filter(!doy%in%c(86:109)&!doy%in%c(229:269))
 
@@ -72,7 +63,7 @@ a<-sqldf("select distinct bird_fn, season from locs500")
 length(unique(a$bird_fn))
 
 #to get it by colony we need the deploy file:
-b<-read.csv("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/croz_royds_gdr_depl_all_v2021-08-27.csv")
+b<-read.csv("data/croz_royds_gdr_depl_all_v2021-08-27.csv")
 length(unique(b$bird_fn))
 
 c <- sqldf("select a.*, b.br_col from a a, b b 
@@ -120,17 +111,17 @@ drop<-sqldf("select distinct c.bird_fn, c.season, c.bird_seas from c c
 #-----------------------------------------------------------------------------------------#
 #Create a nicer version of the 2017-19 home range - added the coastline to it in ArcMap####
 #-----------------------------------------------------------------------------------------#
-new_polygon<-readOGR("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/contours/CROZ_ROYD_nonbreed_locs_all_95_poly.shp")
+new_polygon<-readOGR("data/contours/CROZ_ROYD_nonbreed_locs_all_95_poly.shp")
 new_polygon<-spTransform(new_polygon, the_crs)
 plot(new_polygon)
 
 #this is the home range plus extra to allow for clipping to the coastline (made in ArcMap)
-area_to_be_clipped<-readOGR("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/data/contours/CROZ_ROYD_nonbreed_locs_all_95_poly_edit.shp")
+area_to_be_clipped<-readOGR("data/contours/CROZ_ROYD_nonbreed_locs_all_95_poly_edit.shp")
 area_to_be_clipped<-spTransform(area_to_be_clipped, the_crs)
 plot(area_to_be_clipped)
 
 #this is an edit of the coastline reflecting recent satellite imagery / changes to Ross Ice Shelf and other Ross Sea ice features
-coastline<-readOGR("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/GIS/ADDcstpolyline_edit_2021_11_23.shp")
+coastline<-readOGR("GIS/ADDcstpolyline_edit_2021_11_23.shp")
 #coastline<-readOGR("Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/GIS/ADDcstpoly_outline_Clip_shape.shp")
 coastline<-spTransform(coastline, the_crs)
 plot(coastline, add=T)
@@ -164,8 +155,8 @@ plot(coastline, add=T, col=('black'))
 #get the polygons from both studies####
 #-------------------------------------#
 
-old_polygon<-readOGR(paste0(analyses_dir,"data/contours/WinterArea_2003_2005/WinterPolygon2003-2005.shp"))
-new_polygon<-readOGR(paste0(analyses_dir,"data/contours"), "home_range_2017-19_cst")
+old_polygon<-readOGR("data/contours/WinterArea_2003_2005/WinterPolygon2003-2005.shp")
+new_polygon<-readOGR("data/contours", "home_range_2017-19_cst")
 
 
 old_polygon<-spTransform(old_polygon, the_crs)  

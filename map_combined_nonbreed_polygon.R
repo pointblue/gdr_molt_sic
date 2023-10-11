@@ -11,9 +11,6 @@ if(length(new.packages)>0) {install.packages(new.packages)}
 # load required packages
 lapply(list.of.packages, library, character.only = TRUE)
 
-setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC/")
-
-
 
 # define projection
 proj_ant <-CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=180 +k=1 +x_0=0 +y_0=0 +a=6378273 +b=6356889.449 +datum=WGS84 +units=m +no_defs")
@@ -30,7 +27,7 @@ cont_95 <- spTransform(readOGR("GIS/CROZ_ROYD_nonbreed_locs_all_95_poly_cst_clip
 
 
 # MPA <- readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp")
-MPA <- readOGR("../nonbreeding_foraging/GIS/mpa-shapefile-EPSG102020.shp")
+MPA <- readOGR("GIS/mpa-shapefile-EPSG102020.shp")
 # reproject MPA
 mpa_t <- spTransform(MPA, proj_ant)
 # read in and project antarctica coastline
@@ -38,14 +35,14 @@ mpa_t <- spTransform(MPA, proj_ant)
 ant <- spTransform(readOGR("GIS/ADDcstpoly_edit_2021_11_23.shp"), proj_ant)
 # read in and project grid lines for plotting
 # polar_grid <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
-polar_grid <-spTransform(readOGR("../nonbreeding_foraging/GIS/latlong_stereo.shp"), proj_ant)
+polar_grid <-spTransform(readOGR("GIS/latlong_stereo.shp"), proj_ant)
 # read in and project 2000m isobath
 # iso2000 <- spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/2000_m_isobath.shp"),proj_ant)
 iso1000 <- spTransform(readOGR("GIS/1000_m_isobath.shp"),proj_ant)
 # t<-readOGR("GIS/full_2000_m_isobath.shp")
 # read in and project ACC boundary
 # front <-spTransform(readOGR("Z:/Informatics/S031/analyses/nonbreeding_foraging/GIS/acc_fronts.shp"),proj_ant)
-front <-spTransform(readOGR("../nonbreeding_foraging/GIS/acc_fronts.shp"),proj_ant)
+front <-spTransform(readOGR("GIS/acc_fronts.shp"),proj_ant)
 
 # combined polygon
 comb_poly <- spTransform(readOGR("data/contours/WinterPolygon2003-05_2017-19.shp"),proj_ant)

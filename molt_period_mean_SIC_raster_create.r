@@ -8,18 +8,8 @@
 #last update: 11/23/2021
 # AS update: 3/3/2022
 
-#Clean up memory as needed
-#gc()
-## Specify lib paths to the Antarctica Project R packages library
-#.libPaths('C:/R/libs') 
-
-##Specify the directory where analyses are stored for this (depends on what network you are on)
-analyses_dir<-"Z:/Informatics/S031/analyses/gdr_molt_SIC/"
-# analyses_dir<-"Y:/S031/analyses/aschmidt/gdr_carry_over_effects_molt_date/"
-
 ##Specify the GIS directory you are working from (depends on what network you are on)
-GIS_dir<-"V:/Project/Terrestrial/adpe/"
-# GIS_dir<-"C:/adpe/"
+GIS_dir<- "Path to wherever you have stored the SIC data"
 
 ##Load  any needed libraries####
 library(raster)
@@ -54,7 +44,6 @@ molt_dates <- molt_locs_filt%>%
 
 # ---------------------------------------------------------------------------------#
 # Load home range and combined polygons that will used for clipping SIC raster ####
-# setwd("Z:/Informatics/S031/analyses/gdr_molt_SIC")
 
 # define common projection
 sic_crs <- CRS("+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs") 
@@ -125,7 +114,6 @@ for(yy in c(2017:2019)) {
   myyear=as.character(yy)
   #name the location where SSMI data live
   ssmi_dir=paste0(GIS_dir,"sat_images/sea_ice/geotiff/",myyear,"/")#if on pointblue network
-  # ssmi_dir=paste0(GIS_dir,"sat_images/ssmi/geotiff/",myyear,"/")
   setwd(ssmi_dir)
   
   # dates for study years
@@ -176,31 +164,6 @@ for(yy in c(2017:2019)) {
     
   }
   
-  
-  
-  # for(d in mind:28) {
-  #   d_char<-as.character(d)
-  #   if(d<10) {
-  #     d_char<-paste0("0",d_char)
-  #   }
-  #   the_feb_file<-paste0(feb_dir,"S_",myyear,"02",d_char,"_concentration_v3.0.tif")
-  #   if(file.exists(the_feb_file)) {
-  #     files_feb <- c(files_feb,the_feb_file)
-  #   }
-  # }
-  # for(d in 1:maxd) {
-  #   d_char<-as.character(d)
-  #   if(d<10) {
-  #     d_char<-paste0("0",d_char)
-  #   }
-  #   the_mar_file<-paste0(mar_dir,"S_",myyear,"03",d_char,"_concentration_v3.0.tif")
-  #   if(file.exists(the_mar_file)) {
-  #     files_mar <- c(files_mar,the_mar_file)
-  #   }
-  # }
-  # files <- c(files_feb,files_mar)
-  # files_list<-as.list(files)
-  # STACK2 <- stack(files_list)
   
   files_list <- as.list(c(files_feb,files_mar))
   STACK1 <- stack(files_list)
@@ -323,8 +286,7 @@ names(w_cont95) <- c(2017:2019)
 # this loop is calculating mean for 50 and 95% annual east west contours as well as the 95% area of all 3 years combined
 for(yy in c(2017:2019)) {
   myyear=as.character(yy)
-  amsr_dir=paste0(GIS_dir,"nasa_winter_ecology/ice_concentration/raw/y",myyear,"/")
-  # amsr_dir=paste0(GIS_dir,"sat_images/AMSR/y",myyear,"/")
+  amsr_dir=paste0(GIS_dir,"sat_images/AMSR/y",myyear,"/")
 
   setwd(amsr_dir)
   # 2017
@@ -611,8 +573,7 @@ write.csv(ma_all_year_results_ssmi_df,paste0(analyses_dir,"data/sic_summary_ssmi
 # this loop is calculating mean for 50 and 95% annual east west contours as well as the 95% area of all 3 years combined
 for(yy in c(2006)) {
   myyear=as.character(yy)
-  amsr_dir=paste0(GIS_dir,"nasa_winter_ecology/ice_concentration/raw/y",myyear,"/")
-  # amsr_dir=paste0(GIS_dir,"sat_images/AMSR/y",myyear,"/")
+  amsr_dir=paste0(GIS_dir,"sat_images/AMSR/y",myyear,"/")
   
   setwd(amsr_dir)
  
@@ -718,10 +679,6 @@ for(yy in c(2003,2006)) {
 
 
 
-
-
-
-
 #----------------#
 ##Plot Results####
 #----------------#
@@ -771,107 +728,3 @@ summary(m_w50)
 
 m_w95<-lm(data=dat,west_molt95_sic~year)
 summary(m_w95)
-
-
-# #------------------------------------------------#
-# #Molt area results - 1980 - 2021 (AMSR + SSMI)####
-# #------------------------------------------------#
-# ssmi_amsr_df$amsr_hr_molt_sic_num<-as.numeric(ssmi_amsr_df$amsr_hr_molt)
-# ssmi_amsr_df$amsr_hr_fdive_sic_num<-as.numeric(ssmi_amsr_df$amsr_hr_fdive)
-# ssmi_amsr_df$ssmi_hr_molt_sic_num<-as.numeric(ssmi_amsr_df$ssmi_hr_molt)
-# ssmi_amsr_df$ssmi_hr_fdive_sic_num<-as.numeric(ssmi_amsr_df$ssmi_hr_fdive)
-# ssmi_amsr_df$year_num<-as.numeric(ssmi_amsr_df$year)
-# 
-# ssmi_amsr_df$total_hr_molt_sic_num<-ssmi_amsr_df$amsr_hr_molt_sic_num
-# ssmi_amsr_df$total_hr_fdive_sic_num<-ssmi_amsr_df$amsr_hr_fdive_sic_num
-# 
-# ssmi_amsr_df$total_hr_molt_sic_num<-dplyr::coalesce(ssmi_amsr_df$total_hr_molt_sic_num,ssmi_amsr_df$ssmi_hr_molt_sic_num)
-# ssmi_amsr_df$total_fdive_molt_sic_num<-dplyr::coalesce(ssmi_amsr_df$total_hr_fdive_sic_num,ssmi_amsr_df$ssmi_hr_fdive_sic_num)
-# 
-# ggplot(ssmi_amsr_df, aes(x = year_num, y=total_fdive_molt_sic_num)) +
-#   geom_point() +
-#   #geom_smooth(method="lm") +
-#   geom_line(aes(x=year_num,y=rep(mean(total_fdive_molt_sic_num),nrow(ssmi_amsr_df))),linetype=2) +
-#   scale_y_continuous(breaks=seq(0,60,by=10)) +
-#   scale_x_continuous(breaks=seq(1980,2021,by=5)) +
-#   ylab("Sea Ice Concentration (%)") +
-#   xlab("Year") +
-#   theme_classic() +
-#   theme(axis.title=element_text(size=16),axis.text=element_text(size=14))
-#   
-# trend_model_molt<-lm(data=ssmi_amsr_df,total_fdive_molt_sic_num~year_num)
-# summary(trend_model_molt)
-# mean(ssmi_amsr_df$total_fdive_molt_sic_num)
-# stat.desc(ssmi_amsr_df$total_fdive_molt_sic_num)#uses lib pastecs
-# #28.05 SE 1.65
-# 
-# ssmi_amsr_model<-lm(data=ssmi_amsr_df,amsr_hr_molt_sic_num~ssmi_hr_molt_sic_num)
-# summary(ssmi_amsr_model)
-# #P<0.00000001
-# #adj R2 = 0.99
-# #predict AMSR values for all years based on SSMI values:
-# ssmi_vals<-data.frame(ssmi_hr_molt_sic_num=ssmi_amsr_df$ssmi_hr_molt_sic_num)
-# ssmi_amsr_df$pr_amsr_hr_molt_sic<-predict(ssmi_amsr_model,newdata=ssmi_vals)
-# stat.desc(ssmi_amsr_df$pr_amsr_hr_molt_sic)
-# #mean 31.3 SE 1.8
-# 
-# write.csv(ssmi_amsr_df, paste0(analyses_dir,"data/molt_area_hr_sic_ssmi_amsr_1980-2021.csv"),row.names=F)
-# #next: predict AMSR from SSMI for years with no AMSR
-# 
-# #foraging dive area results
-# ggplot(ssmi_amsr_df, aes(x = year_num, y=total_hr_molt_sic_num)) +
-#   geom_point() +
-#   geom_smooth(method="lm") +
-#   scale_y_continuous(breaks=seq(0,60,by=10)) +
-#   scale_x_continuous(breaks=seq(1980,2019,by=5)) +
-#   ylab("Sea Ice Concentration (%)") +
-#   xlab("Year") +
-#   theme_classic()
-# 
-# trend_model_fdive<-lm(data=ssmi_amsr_df,total_hr_fdive_sic_num~year_num)
-# summary(trend_model_fdive)
-# 
-# #----------------------------------------------#
-# #Molt area results - 1980 - 2021 (SSMI only)####
-# #----------------------------------------------#
-# ssmi_croz_royds_hr_molt<-ma_all_year_results_ssmi_df
-# #ssmi_croz_royds_hr_molt$croz_hr_sic<-ssmi_croz_royds_hr_molt$total_hr_molt_sic_num
-# #ssmi_croz_royds_hr_molt$royd_hr_sic<-ssmi_croz_royds_hr_molt$total_hr_fdive_sic_num
-# 
-# ssmi_croz_royds_hr_molt<-mutate(ssmi_croz_royds_hr_molt,
-#   full_hr_sic_num=as.numeric(full_hr_molt_sic),
-#   croz_hr_molt_sic_num=as.numeric(croz_hr_molt_sic),
-#   royd_hr_molt_sic_num=as.numeric(royd_hr_molt_sic),
-#   year_num=as.numeric(year)
-# )
-# 
-# #modify the y's below according to what you want to see:
-# #full_hr_sic_num
-# #croz_hr_molt_sic_num
-# #royd_hr_molt_sic_num
-# 
-# ggplot(ssmi_croz_royds_hr_molt, aes(x = year_num, y=royd_hr_molt_sic_num)) +
-#   geom_point() +
-#   geom_smooth(method="lm") +
-#   geom_line(aes(x=year_num,y=rep(mean(royd_hr_molt_sic_num),nrow(ssmi_croz_royds_hr_molt))),linetype=2) +
-#   scale_y_continuous(breaks=seq(0,60,by=10)) +
-#   scale_x_continuous(breaks=seq(1980,2021,by=5)) +
-#   ylab("Sea Ice Concentration (%)") +
-#   xlab("Year") +
-#   theme_classic() +
-#   theme(axis.title=element_text(size=16),axis.text=element_text(size=14))
-# 
-# 
-# stat.desc(ssmi_croz_royds_hr_molt$royd_hr_molt_sic_num)#uses lib pastecs
-# #mean for full home range (2003-2005 + 2017-2019) is 16.95
-# #mean for Crozier is 31.54 
-# #mean for Royds is 18.59 
-# stat.desc(ssmi_croz_royds_hr_molt$full_hr_sic_num[ssmi_croz_royds_hr_molt$year>=2017 & ssmi_croz_royds_hr_molt$year<=2019])
-# #7.23% 
-# stat.desc(ssmi_croz_royds_hr_molt$croz_hr_molt_sic_num[ssmi_croz_royds_hr_molt$year>=2017 & ssmi_croz_royds_hr_molt$year<=2019])
-# #9.4% for Croz
-# stat.desc(ssmi_croz_royds_hr_molt$royd_hr_molt_sic_num[ssmi_croz_royds_hr_molt$year>=2017 & ssmi_croz_royds_hr_molt$year<=2019])
-# #6.31% for Royds
-# 
-# trend_model<-lm(data=ssmi_croz_royds_hr_molt,royd_hr_molt_sic_num~year_num)
-# summary(trend_model)
